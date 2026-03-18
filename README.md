@@ -4,7 +4,7 @@
 ## 初始化数据库
 在utils/commands.py里注册的命令
 ```bash
-#flask自动发现应用工厂
+#flask自动发现应用工厂的方式创建数据库
 uv run flask init-db
 #显式指定应用工厂入口--app <包名>:<函数名>
 uv run flask --app app:create_app init-db

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models import Tool
 from app.extensions import db
 from app.utils.decorators import token_required
-
+from app.utils.validators import validate_required
 tools_bp = Blueprint('tools', __name__, url_prefix='/tools')
 @tools_bp.route('/get', methods=['GET'])
 def get_tools():
@@ -15,7 +15,8 @@ def get_tools():
 def create_tool():
     """创建新工具"""
     data = request.get_json()
-
+    # 验证必填字段
+    validate_required(data, ['title', 'subtitle', 'url', 'imgUrl', 'content'])
     title = data.get('title').strip()
     subtitle = data.get('subtitle').strip()
     url = data.get('url').strip()
@@ -40,6 +41,8 @@ def create_tool():
 def delete_tool():
     """删除工具"""
     data = request.get_json()
+    # 验证必填字段
+    validate_required(data, ['id'])
     tool_id = data.get('id')
     tool = Tool.query.get_or_404(tool_id)
     if not tool:
@@ -55,6 +58,8 @@ def update_tool():
     """更新工具"""
     #获取请求数据
     data = request.get_json()
+    # 验证必填字段
+    validate_required(data, ['id'])
     #提取工具ID
     tool_id = data.get('id')
     #查询工具并更新数据
@@ -79,6 +84,8 @@ def add_tools():
     tools_data = request.get_json()
     new_tools = []
     for tool_data in tools_data:
+        # 验证必填字段
+        validate_required(tool_data, ['title', 'subtitle', 'url', 'imgUrl', 'content'])
         title = tool_data.get('title').strip()
         subtitle = tool_data.get('subtitle').strip()
         url = tool_data.get('url').strip()

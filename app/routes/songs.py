@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models import Song
 from app.extensions import db
 from app.utils.decorators import token_required
+from app.utils.validators import validate_required
 
 songs_bp = Blueprint('songs', __name__, url_prefix='/songs')
 @songs_bp.route('/get', methods=['GET'])
@@ -15,7 +16,8 @@ def get_songs():
 def create_song():
     """创建新歌曲"""
     data = request.get_json()
-
+    # 验证必填字段
+    validate_required(data, ['title', 'artist', 'url', 'cover'])
     title = data.get('title').strip()
     artist = data.get('artist').strip()
     url = data.get('url').strip()
@@ -38,6 +40,8 @@ def create_song():
 def delete_song():
     """删除歌曲"""
     data = request.get_json()
+    # 验证必填字段
+    validate_required(data, ['id'])
     song_id = data.get('id')
     song = Song.query.get_or_404(song_id)
     if not song:
@@ -53,6 +57,8 @@ def update_song():
     """更新歌曲"""
     #获取请求数据
     data = request.get_json()
+    # 验证必填字段
+    validate_required(data, ['id'])
     #提取歌曲ID
     song_id = data.get('id')
     #查询歌曲并更新数据

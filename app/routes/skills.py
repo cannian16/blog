@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models import Skill
 from app.extensions import db
 from app.utils.decorators import token_required
-
+from app.utils.validators import validate_required
 skills_bp = Blueprint('skills', __name__, url_prefix='/skills')
 
 @skills_bp.route('/get', methods=['GET'])
@@ -16,7 +16,8 @@ def get_skills():
 def create_skill():
     """创建新技能"""
     data = request.get_json()
-
+    # 验证必填字段
+    validate_required(data, ['name', 'logo', 'url'])
     name = data.get('name').strip()
     logo = data.get('logo').strip()
     url = data.get('url').strip()
@@ -40,6 +41,8 @@ def create_skills():
 
     new_skills = []
     for skill_data in skills_data:
+        # 验证必填字段
+        validate_required(skill_data, ['name', 'logo', 'url'])
         name = skill_data.get('name').strip()
         logo = skill_data.get('logo').strip()
         url = skill_data.get('url').strip()
@@ -61,6 +64,8 @@ def create_skills():
 def delete_skill():
     """删除技能"""
     data = request.get_json()
+    # 验证必填字段
+    validate_required(data, ['id'])
     skill_id = data.get('id')
     skill = Skill.query.get_or_404(skill_id)
     if not skill:
@@ -76,6 +81,8 @@ def update_skill():
     """更新技能"""
     #获取请求数据
     data = request.get_json()
+    # 验证必填字段
+    validate_required(data, ['id'])
     #提取技能ID
     skill_id = data.get('id')
     #查询技能并更新数据

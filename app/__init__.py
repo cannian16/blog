@@ -14,7 +14,6 @@ def create_app(test_config=None):
     app.config['SQLALCHEMY_ECHO'] = False  # 打印 SQL 语句（调试用）
     app.secret_key = os.getenv('SECRET_KEY')
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:4321").split(",")
-    print("Allowed origins:", ALLOWED_ORIGINS)  # 调试输出，确认环境变量是否正确加载
     CORS(app,
          origins=ALLOWED_ORIGINS,
          supports_credentials=True)
