@@ -1,57 +1,53 @@
 <script lang="ts">
-  let { children } = $props(); 
-  import { Accordion, Avatar, DropdownMenu } from "bits-ui";
-  import NavGroup from '$lib/components/NavGroup.svelte';
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { api } from "$lib/api/client";
+let { children } = $props();
 
-  let user = $state({
-    name: "",
-    avatar: "",
-    isLoaded: false
-  });
-  interface User {
-    username: string;
-    avatar_url: string;
-    role: string;
-  }
+import { Avatar, DropdownMenu } from "bits-ui";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { api } from "$lib/api/client";
+import Navgation from "$lib/components/dashboard/Navgation.svelte";
 
-  async function checkAuth() {
-    try {
-      // 请求后端接口：验证 Token 并获取 Profile
-      const data = await api.get<User>('/auth/me'); 
-      
-      // 校验通过，填充用户信息
-      user.name = data.username;
-      user.avatar = data.avatar_url;
-      user.isLoaded = true;
-    } catch (err) {
-      // 校验失败 
-      console.error("鉴权失效:", err);
-      localStorage.removeItem('jwt_token');
-      goto('/login', { replaceState: true });
-    }
-  }
-  onMount(() => {
-    checkAuth();
-  });
+let user = $state({
+	name: "",
+	avatar: "",
+	isLoaded: false,
+});
+interface User {
+	username: string;
+	avatar_url: string;
+	role: string;
+}
 
-  function handleLogout() {
-    localStorage.removeItem('jwt_token');
-    goto('/login', { replaceState: true });
-  }
+async function checkAuth() {
+	try {
+		// 请求后端接口：验证 Token 并获取 Profile
+		const data = await api.get<User>("/auth/me");
+
+		// 校验通过，填充用户信息
+		user.name = data.username;
+		user.avatar = data.avatar_url;
+		user.isLoaded = true;
+	} catch (err) {
+		// 校验失败
+		console.error("鉴权失效:", err);
+		localStorage.removeItem("jwt_token");
+		goto("/login", { replaceState: true });
+	}
+}
+onMount(() => {
+	checkAuth();
+});
+
+function handleLogout() {
+	localStorage.removeItem("jwt_token");
+	goto("/login", { replaceState: true });
+}
 </script>
 
 <div class="flex min-h-screen">
   <aside class="w-64 bg-white border-r border-gray-200 p-4 hidden md:block">
     <h2 class="text-xl font-bold mb-6">博客后台</h2>
-    <Accordion.Root type="single">
-      <NavGroup title="音乐" value="songs" basePath="/songs" />
-      <NavGroup title="工具" value="tools" basePath="/tools" />
-      <NavGroup title="技术栈" value="skills" basePath="/skills" />
-      <NavGroup title="友链" value="links" basePath="/links" />
-    </Accordion.Root>
+    <Navgation></Navgation>
     <DropdownMenu.Root>
       <DropdownMenu.Trigger class="outline-none">
         <Avatar.Root

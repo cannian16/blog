@@ -1,32 +1,32 @@
 <script lang="ts">
-    import { fade, scale } from 'svelte/transition';
-    import { api } from '$lib/api/client';
+import { fade, scale } from "svelte/transition";
+import { api } from "$lib/api/client";
 
-    // props: link 为当前选中的那条记录数据
-    let { open = $bindable(false), link, onDone } = $props();
+// props: link 为当前选中的那条记录数据
+let { open = $bindable(false), link, onDone } = $props();
 
-    // 本地编辑状态，防止直接修改父组件列表数据导致意外渲染
-    let formData = $state({ id: 0, name: '', url: '', icon: '', description: '' });
-    let isSubmitting = $state(false);
+// 本地编辑状态，防止直接修改父组件列表数据导致意外渲染
+let formData = $state({ id: 0, name: "", url: "", icon: "", description: "" });
+let isSubmitting = $state(false);
 
-    // 关键：当父组件传入的 link 变化时，同步给本地 formData
-    $effect(() => {
-        if (link) formData = { ...link };
-    });
+// 关键：当父组件传入的 link 变化时，同步给本地 formData
+$effect(() => {
+	if (link) formData = { ...link };
+});
 
-    async function handleUpdate(e: Event) {
-        e.preventDefault();
-        isSubmitting = true;
-        try {
-            await api.post('/links/update', formData);
-            open = false;
-            onDone();
-        } catch (err) {
-            alert("修改失败: " + err);
-        } finally {
-            isSubmitting = false;
-        }
-    }
+async function handleUpdate(e: Event) {
+	e.preventDefault();
+	isSubmitting = true;
+	try {
+		await api.post("/links/update", formData);
+		open = false;
+		onDone();
+	} catch (err) {
+		alert(`新增失败: ${err}`);
+	} finally {
+		isSubmitting = false;
+	}
+}
 </script>
 
 {#if open}

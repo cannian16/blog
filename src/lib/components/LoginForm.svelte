@@ -1,35 +1,37 @@
 <script lang="ts">
-  // 响应式数据
-  let isLoading = $state(false);
-  import { api } from '$lib/api/client';
-  import { goto } from '$app/navigation';
-  let message = $state();
+// 响应式数据
+let isLoading = $state(false);
 
-  let user = $state({
-		username: "",
-		password: ""
-	});
-  
-  interface LoginResponse {
-    token: string;
-  }
-  async function handleSubmit(e: SubmitEvent) {
-		e.preventDefault();
-		isLoading = true;
-		
-		try {
-			const data = await api.post<LoginResponse>('/auth/login', user);
-      console.log('提交成功:', data);
-      if (data.token) {
-        localStorage.setItem('jwt_token', data.token);
-      }
-      await goto('/', { replaceState: true });
-		} catch (err) {
-			message = err;
-		} finally {
-			isLoading = false;
+import { goto } from "$app/navigation";
+import { api } from "$lib/api/client";
+
+let message = $state();
+
+let user = $state({
+	username: "",
+	password: "",
+});
+
+interface LoginResponse {
+	token: string;
+}
+async function handleSubmit(e: SubmitEvent) {
+	e.preventDefault();
+	isLoading = true;
+
+	try {
+		const data = await api.post<LoginResponse>("/auth/login", user);
+		console.log("提交成功:", data);
+		if (data.token) {
+			localStorage.setItem("jwt_token", data.token);
 		}
+		await goto("/", { replaceState: true });
+	} catch (err) {
+		message = err;
+	} finally {
+		isLoading = false;
 	}
+}
 </script>
 
 <!-- <svelte:head>
@@ -317,29 +319,6 @@
     transform-origin: left;
   }
   
-  .error-message {
-    background: rgba(255, 53, 155, 0.2);
-    border: 1px solid rgba(255, 53, 155, 0.5);
-    color: #fff;
-    padding: 10px 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-    font-size: 14px;
-    backdrop-filter: blur(5px);
-    animation: fadeIn 0.3s ease;
-  }
-  
-  .success-message {
-    background: rgba(0, 210, 255, 0.2);
-    border: 1px solid rgba(0, 210, 255, 0.5);
-    color: #fff;
-    padding: 10px 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-    font-size: 14px;
-    backdrop-filter: blur(5px);
-    animation: fadeIn 0.3s ease;
-  }
   
   @keyframes fadeIn {
     from {

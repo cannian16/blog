@@ -1,23 +1,28 @@
 <script lang="ts">
-  import { Accordion } from "bits-ui";
-  import { page } from '$app/state'; // 用于判断当前页面是否激活
+import { Accordion } from "bits-ui";
+import { page } from "$app/state"; // 用于判断当前页面是否激活
 
-  // 定义传入的属性
-  let { title, value, basePath, items = [] } = $props<{
-    title: string;     
-    value: string;      // Accordion 的唯一标识
-    basePath: string;   // 基础路径，比如 "/music"
-    items?: { label: string; suffix: string; color?: string }[]; 
-  }>();
+// 定义传入的属性
+let {
+	title,
+	value,
+	basePath,
+	items = [],
+} = $props<{
+	title: string;
+	value: string; // Accordion 的唯一标识
+	basePath: string; // 基础路径，比如 "/music"
+	items?: { label: string; suffix: string; color?: string }[];
+}>();
 
-  const defaultItems = [
-    { label: '查看', suffix: '/get', color: 'text-gray-600' },
-    { label: '新增', suffix: '/add', color: 'text-gray-600' },
-    { label: '更新', suffix: '/update', color: 'text-gray-600' },
-    { label: '删除', suffix: '/delete', color: 'text-red-500' },
-  ];
+const defaultItems = [
+	{ label: "查看", suffix: "/get", color: "text-gray-600" },
+	{ label: "新增", suffix: "/add", color: "text-gray-600" },
+	{ label: "更新", suffix: "/update", color: "text-gray-600" },
+	{ label: "删除", suffix: "/delete", color: "text-red-500" },
+];
 
-  const displayItems = $derived(items.length > 0 ? items : defaultItems);
+const displayItems = $derived(items.length > 0 ? items : defaultItems);
 </script>
 
 <Accordion.Item {value} class="border-b last:border-b-0">

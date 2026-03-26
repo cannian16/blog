@@ -1,53 +1,57 @@
 <script lang="ts">
-    interface Link {
-        id: number;
-        name: string;
-        url: string;
-        icon: string;
-        description: string;
-    }
-    import { onMount } from 'svelte';
-    import { api } from '$lib/api/client';
-    import AddLinkModal from '$lib/components/links/AddLinkModal.svelte';
-    let isAddOpen = $state(false);
-    import EditLinkModal from '$lib/components/links/EditLinkModal.svelte';
-    let isEditOpen = $state(false);
-    let editingLink = $state<Link | null>(null);
-    let links = $state<Link[]>([]);
-    let isLoading = $state(true);
-    let message = $state("");
-    
-    function startEdit(link: Link) {
-        editingLink = link;
-        isEditOpen = true;
-    }
+interface Link {
+	id: number;
+	name: string;
+	url: string;
+	icon: string;
+	description: string;
+}
 
-    // 1. 查：初始化获取数据
-    onMount(async () => {
-        try {
-            links = await api.get<Link[]>('/links/get');
-        } catch (err) {
-            alert('获取失败: ' + err);
-        } finally {
-            isLoading = false;
-        }
-    });
-    async function deleteLink(id: number) {
-        if (!confirm('确定删除这个链接吗？')) return;
-        try {
-			const response = await api.post('/links/delete', {id});
-            console.log('删除成功:', response);
-            links = links.filter(l => l.id !== id);
-		} catch (err) {
-			message = "发生错误: " + err;
-		} finally {
-			isLoading = false;
-		}
-    }
+import { onMount } from "svelte";
+import { api } from "$lib/api/client";
+import AddLinkModal from "$lib/components/dashboard/links/AddLinkModal.svelte";
 
-    async function refresh() {
-        links = await api.get('/links/get');
-    }
+let isAddOpen = $state(false);
+
+import EditLinkModal from "$lib/components/dashboard/links/EditLinkModal.svelte";
+
+let isEditOpen = $state(false);
+let editingLink = $state<Link | null>(null);
+let links = $state<Link[]>([]);
+let isLoading = $state(true);
+let message = $state("");
+
+function startEdit(link: Link) {
+	editingLink = link;
+	isEditOpen = true;
+}
+
+// 1. 查：初始化获取数据
+onMount(async () => {
+	try {
+		links = await api.get<Link[]>("/links/get");
+	} catch (err) {
+		alert(`获取失败: ${err}`);
+	} finally {
+		isLoading = false;
+	}
+});
+async function deleteLink(id: number) {
+	if (!confirm("确定删除这个链接吗？")) return;
+	try {
+		const response = await api.post("/links/delete", { id });
+		console.log("删除成功:", response);
+		links = links.filter((l) => l.id !== id);
+	} catch (err) {
+		message = `发生错误: ${err}`;
+	} finally {
+		isLoading = false;
+	}
+}
+
+async function refresh() {
+	links = await api.get("/links/get");
+}
 </script>
 
 <div class="p-6 bg-gray-50 min-h-screen">

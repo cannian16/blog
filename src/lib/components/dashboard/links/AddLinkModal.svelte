@@ -1,29 +1,29 @@
 <script lang="ts">
-    import { fade, scale } from 'svelte/transition';
-    import { api } from '$lib/api/client';
+import { fade, scale } from "svelte/transition";
+import { api } from "$lib/api/client";
 
-    // props: open 用于控制显示，onDone 用于通知父组件刷新列表
-    let { open = $bindable(false), onDone } = $props();
+// props: open 用于控制显示，onDone 用于通知父组件刷新列表
+let { open = $bindable(false), onDone } = $props();
 
-    // 状态永远初始化为空
-    let formData = $state({ name: '', url: '', icon: '', description: '' });
-    let isSubmitting = $state(false);
+// 状态永远初始化为空
+let formData = $state({ name: "", url: "", icon: "", description: "" });
+let isSubmitting = $state(false);
 
-    async function handleAdd(e: Event) {
-        e.preventDefault();
-        isSubmitting = true;
-        try {
-            await api.post('/links/add', formData);
-            // 提交成功：重置表单 -> 关闭弹窗 -> 刷新列表
-            formData = { name: '', url: '', icon: '', description: '' };
-            open = false;
-            onDone();
-        } catch (err) {
-            alert("新增失败: " + err);
-        } finally {
-            isSubmitting = false;
-        }
-    }
+async function handleAdd(e: Event) {
+	e.preventDefault();
+	isSubmitting = true;
+	try {
+		await api.post("/links/add", formData);
+		// 提交成功：重置表单 -> 关闭弹窗 -> 刷新列表
+		formData = { name: "", url: "", icon: "", description: "" };
+		open = false;
+		onDone();
+	} catch (err) {
+		alert(`新增失败: ${err}`);
+	} finally {
+		isSubmitting = false;
+	}
+}
 </script>
 
 {#if open}
