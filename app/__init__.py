@@ -13,7 +13,7 @@ def create_app(test_config=None):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = False  # 打印 SQL 语句（调试用）
     app.secret_key = os.getenv('SECRET_KEY')
-    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:4321").split(",")
+    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
     CORS(app,
          origins=ALLOWED_ORIGINS,
          supports_credentials=True)

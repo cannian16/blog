@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from app.models.message import Message
-import hashlib
 from app.extensions import db
 
 messages_bp = Blueprint('messages', __name__, url_prefix='/messages')
