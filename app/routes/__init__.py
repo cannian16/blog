@@ -5,8 +5,9 @@ from .skills import skills_bp
 from .tools import tools_bp
 from .posts import posts_bp
 from .auth import auth_bp
+from .system import system_bp
 
-__all__ = ['messages_bp', 'links_bp', 'songs_bp', 'skills_bp', 'tools_bp', 'posts_bp', 'auth_bp']
+__all__ = ['messages_bp', 'links_bp', 'songs_bp', 'skills_bp', 'tools_bp', 'posts_bp', 'auth_bp', 'system_bp']
 
 def register_blueprints(app):
     app.register_blueprint(messages_bp)
@@ -16,3 +17,4 @@ def register_blueprints(app):
     app.register_blueprint(tools_bp)
     app.register_blueprint(posts_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(system_bp)
