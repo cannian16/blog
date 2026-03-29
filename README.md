@@ -27,11 +27,14 @@ uv run flask run
 项目结构典的不能再典了，不用说了就，很简单的项目。
 
 # 注意事项
-.env需要自己创建，里面有3个字段,生产环境和开发环境是分别两个环境变量。docker-compose的时候也要加上这环境变量
+## 环境变量
 ```text
-ADMIN_TOKEN=123
-SECRET_KEY=dev
-ALLOWED_ORIGINS=http://localhost:4321
+SECRET_KEY=:"dev"
+ALLOWED_ORIGINS="http://localhost:4321"
+GITHUB_REPO="xxxx/xxxx"
+ADMIN_USERNAME="cannian"
+ADMIN_PASSWORD="20050113Xhz."
+GITHUB_TOKEN=""
 ```
 ```docker-compose.yml
 services:
