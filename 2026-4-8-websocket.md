@@ -1,6 +1,6 @@
 ---
 title: websocket
-published: 2025-04-09
+published: 2026-04-09
 description: ''
 image: ''
 tags: [nginx,network,socket]
