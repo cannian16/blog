@@ -1,5 +1,5 @@
 ---
-title: Linux底层
+title: Linux内核
 published: 2026-04-01
 description: 'linux'
 image: ''
