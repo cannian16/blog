@@ -4,7 +4,7 @@ published: 2026-04-15
 description: '关于python的面向对象运行机制和设计模式'
 image: ''
 tags: ['python','OO']
-category: '系统架构'
+category: '语言和框架'
 draft: false
 lang: ''
 ---
