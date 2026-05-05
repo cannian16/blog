@@ -5,7 +5,7 @@ description: '用了这么久的python，js的异步，但是里面一直没有�
 image: ''
 tags: ['asyncio','python']
 category: '语言和框架'
-draft: true
+draft: false
 lang: ''
 ---
 一直以来，对异步的理解都停留在可用的地步，比如async是承诺我这个函数将来会返回值，await就是遇到这种async的函数，我就在这中断，等这个async返回，我先去做别的协程的任务，但真实的异步远不止于此。

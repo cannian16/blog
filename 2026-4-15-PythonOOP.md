@@ -185,6 +185,9 @@ Out[11]: function
 - __str__(function)：实现了这个才能被str(),print()转换成字符串
 - __getitem__(function)：
 - __add__(function)：实现了这个可以让你的对象使用`+`来进行两个对象的运算，str的相加就是这个道理。
+- __entry__(self): 实现了这个with <对象>，就会调用__entry__方法返回参数，作为as。
+- __exit__(self): 当运行出with语句自动调用exit方法。
+- __next__()： 
 ## “元数据型”属性
 - __doc__(str/None)：文档字符串（注释）
 - __name__(str)：类或函数的真名。
@@ -266,6 +269,9 @@ public class PanClient {
 | **拿** | `getattr(obj, "name", default)` | 获取对象的一个属性 |
 | **改** | `setattr(obj, "name", value)` | 给对象添加一个属性 |
 | **删** | `delattr(obj, "name")` | 把对象里的属性删了 |
+
+# 反省
+用inspect甚至能把对象的源码给搞出来。
 
 # 不要对象
 似乎在python里一切都是对象，所有的一切，都是虚的，连print、+、for都是通过对象实现的。但是实际上最终真实的只有极少数的，真实的：
