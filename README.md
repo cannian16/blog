@@ -34,4 +34,12 @@ docker run --rm -p 3000:3000 blog-admin
 
 `site` 生成静态文件，由 nginx 提供服务；音乐、友链和关于页数据由浏览器请求 `/api/` 获取，构建时无需连接后端。`admin` 使用 SvelteKit 的 Node adapter，API 地址仍由 `PUBLIC_API_BASE_URL` 构建参数指定。后端镜像需要在运行时配置 `SECRET_KEY`、`ALLOWED_ORIGINS` 和管理员凭据。
 
-目前未迁移 GitHub Actions。管理后台首页的手动部署按钮仍依赖原先的 GitHub `repository_dispatch` 流程，新的仓库配置 CI/CD 前不能用于部署。
+## CI
+
+`.github/workflows/` 分别检查 `site/`、`admin/` 和 `backend/`。相关目录变更时，PR 会运行检查并验证 Docker 构建；推送到 `main` 时，检查通过后还会发布以下镜像到 GHCR，标签为提交 SHA 的前 7 位：
+
+- `ghcr.io/<owner>/blog-site:<sha>`
+- `ghcr.io/<owner>/blog-admin:<sha>`
+- `ghcr.io/<owner>/blog-backend:<sha>`
+
+CI 不部署服务器。管理后台首页的手动部署按钮仍依赖原先的 GitHub `repository_dispatch` 流程，新的仓库配置部署流程前不能使用。
