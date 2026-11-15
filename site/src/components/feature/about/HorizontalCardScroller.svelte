@@ -1,8 +1,9 @@
 <script>
 import { onDestroy, onMount } from "svelte";
+import api from "@lib/api";
 import CardBentEdgeFixed from "./CardComponent.svelte";
 
-export let cards = [];
+let cards = [];
 export let gap = 6;
 export let snap = true;
 
@@ -161,6 +162,14 @@ const handleScroll = () => {
 };
 
 onMount(() => {
+	api.get("tools/get")
+		.then((response) => {
+			cards = response.data;
+		})
+		.catch((err) => {
+			console.error("获取工具列表失败:", err);
+		});
+
 	if (container) {
 		container.addEventListener("scroll", handleScroll);
 

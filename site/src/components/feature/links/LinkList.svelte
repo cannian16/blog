@@ -1,5 +1,17 @@
 <script>
-export let links = [];
+import { onMount } from "svelte";
+import api from "@lib/api";
+
+let links = [];
+
+onMount(async () => {
+	try {
+		const response = await api.get("links/get");
+		links = response.data;
+	} catch (err) {
+		console.error("获取友链失败:", err);
+	}
+});
 </script>
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
         <div class="card-base z-10 px-9 py-6 relative w-full ">
