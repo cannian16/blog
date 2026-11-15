@@ -10,7 +10,7 @@
 
 ## 本地开发
 
-在对应子目录分别安装依赖并启动：
+在不同终端进入对应子目录，安装依赖并启动：
 
 ```sh
 cd backend && uv sync && uv run main.py
@@ -18,7 +18,7 @@ cd site && pnpm install && pnpm dev
 cd admin && pnpm install && pnpm dev
 ```
 
-`admin` 需要设置 `PUBLIC_API_BASE_URL`；`site` 可通过 `PUBLIC_API_BASE` 设置 API 地址。后端需要按 `backend/README.md` 配置环境变量。
+`admin` 需要设置 `PUBLIC_API_BASE_URL`；`site` 可通过 `PUBLIC_API_BASE` 设置 API 地址。后端需要按 `backend/README.md` 配置环境变量。文章直接在 `site/src/content/posts/` 编辑，站点构建会自动读取，不再需要从独立仓库同步。
 
 ## 容器构建
 
@@ -26,8 +26,12 @@ cd admin && pnpm install && pnpm dev
 
 ```sh
 docker build -t blog-backend ./backend
-docker build -t blog-site ./site
+docker build --build-arg PUBLIC_API_BASE=https://blog.cannian.space/api -t blog-site ./site
 docker build --build-arg PUBLIC_API_BASE_URL=https://blog.cannian.space/api -t blog-admin ./admin
+docker run --rm -p 8080:80 blog-site
+docker run --rm -p 3000:3000 blog-admin
 ```
 
-`site` 和 `admin` 的 API 地址在构建时写入产物。部署前按目标环境设置对应 build arg；`site` 生成静态文件，由 nginx 提供服务，`admin` 使用 SvelteKit 的 Node adapter。
+`site` 和 `admin` 的 API 地址在构建时写入产物。部署前按目标环境设置对应 build arg；`site` 生成静态文件，由 nginx 提供服务，`admin` 使用 SvelteKit 的 Node adapter。站点构建时会请求 API 生成音乐、友链等静态内容，构建环境需要能访问该地址。后端镜像需要在运行时配置 `SECRET_KEY`、`ALLOWED_ORIGINS` 和管理员凭据。
+
+目前未迁移 GitHub Actions。管理后台首页的手动部署按钮仍依赖原先的 GitHub `repository_dispatch` 流程，新的仓库配置 CI/CD 前不能用于部署。
