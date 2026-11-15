@@ -18,7 +18,7 @@ cd site && pnpm install && pnpm dev
 cd admin && pnpm install && pnpm dev
 ```
 
-`admin` 需要设置 `PUBLIC_API_BASE_URL`。`site` 的浏览器请求固定使用同源 `/api/`；本地开发和部署入口都需要将该路径代理到 Flask API。后端需要按 `backend/README.md` 配置环境变量。文章直接在 `site/src/content/posts/` 编辑，站点构建会自动读取，不再需要从独立仓库同步。
+`admin` 需要设置 `PUBLIC_API_BASE_URL`。`site` 的浏览器请求固定使用同源 `/api/`；本地开发前将 `site/.env.example` 复制为 `site/.env`，设置 `DEV_API_TARGET`，部署入口也需要将该路径代理到 Flask API。后端需要按 `backend/README.md` 配置环境变量。文章直接在 `site/src/content/posts/` 编辑，站点构建会自动读取，不再需要从独立仓库同步。
 
 ## 容器构建
 

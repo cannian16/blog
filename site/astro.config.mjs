@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
@@ -23,6 +25,10 @@ import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.
 import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
+
+const envFile = fileURLToPath(new URL("./.env", import.meta.url));
+if (existsSync(envFile)) process.loadEnvFile(envFile);
+const devApiTarget = process.env.DEV_API_TARGET;
 
 // https://astro.build/config
 export default defineConfig({
@@ -156,13 +162,13 @@ export default defineConfig({
 	},
 	vite: {
 		server: {
-			proxy: {
+			proxy: devApiTarget ? {
 				"/api/": {
-					target: "http://127.0.0.1:5000",
+					target: devApiTarget,
 					changeOrigin: true,
 					rewrite: (path) => path.replace(/^\/api/, ""),
 				},
-			},
+			} : {},
 		},
 		build: {
 			rollupOptions: {
