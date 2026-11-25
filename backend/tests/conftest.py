@@ -12,7 +12,6 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-with-at-least-32-bytes")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("ADMIN_USERNAME", "admin")
 os.environ.setdefault("ADMIN_PASSWORD", "password")
-os.environ.setdefault("ALLOWED_ORIGINS", "http://localhost:4321")
 
 from app.main import create_app  # noqa: E402
 

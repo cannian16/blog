@@ -224,6 +224,16 @@ def test_docs_head_and_exact_options_compatibility(client, auth_headers):
         assert response.status_code == 200, path
         assert "OPTIONS" in response.headers["allow"]
 
+    preflight = client.options(
+        "/",
+        headers={
+            "Origin": "http://localhost:4321",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert preflight.status_code == 200
+    assert "access-control-allow-origin" not in preflight.headers
+
     assert client.options("/unknown").status_code == 404
     preflight = client.options(
         "/unknown",

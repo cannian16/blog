@@ -16,15 +16,10 @@ load_dotenv()
 class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
     SECRET_KEY: str | None = os.getenv("SECRET_KEY")
-    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
     ADMIN_USERNAME: str | None = os.getenv("ADMIN_USERNAME")
     ADMIN_PASSWORD: str | None = os.getenv("ADMIN_PASSWORD")
     GITHUB_TOKEN: str | None = os.getenv("GITHUB_TOKEN")
     GITHUB_REPO: str | None = os.getenv("GITHUB_REPO")
-
-    @property
-    def allowed_origins(self) -> list[str]:
-        return [origin for origin in self.ALLOWED_ORIGINS.split(",") if origin]
 
 
 settings = Settings()

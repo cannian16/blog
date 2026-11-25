@@ -14,7 +14,6 @@ uv sync --frozen
 
 ```text
 SECRET_KEY="replace-with-a-strong-secret"
-ALLOWED_ORIGINS="http://localhost:4321"
 GITHUB_REPO="owner/repository"
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="replace-me"

@@ -33,7 +33,6 @@ jobs:
       - name: FastAPI startup smoke test
         env:
           SECRET_KEY: ci-test-key
-          ALLOWED_ORIGINS: http://localhost:4321
           DATABASE_URL: "sqlite:///:memory:"
           PYTHONPATH: src
         run: |

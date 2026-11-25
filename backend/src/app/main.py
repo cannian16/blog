@@ -4,7 +4,6 @@ from collections import defaultdict
 from collections.abc import Callable
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException
@@ -59,13 +58,6 @@ def create_app(database_url: str | None = None, *, create_tables: bool = False) 
         Base.metadata.create_all(selected_engine)
 
     application = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.allowed_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
     application.add_exception_handler(AuthenticationError, authentication_error_handler)
 
     @application.exception_handler(FlaskHTTPError)
