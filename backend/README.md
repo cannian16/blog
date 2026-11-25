@@ -1,50 +1,67 @@
-# 应用的CLI命令
-下面所有的命令的工作路径都在项目的根目录
+# Blog FastAPI Backend
 
-## 初始化数据库
-在utils/commands.py里注册的命令
-```bash
-#flask自动发现应用工厂的方式创建数据库
-uv run flask init-db
-#显式指定应用工厂入口--app <包名>:<函数名>
-uv run flask --app app:create_app init-db
+以下命令均在 `backend/` 目录执行。
+
+## 安装依赖
+
+```sh
+uv sync --frozen
 ```
 
-## 启动开发服务器
-```bash
-# 传统方式,把app包导出来执行工厂函数赋给实例，执行run方法
-uv run main.py
-# 显式指定包和creat_app函数
-flask --app app:create_app run --debug
-# 自动识别create_app函数，并运行实例
-uv run flask run
-```
-
-## 启动生产服务器(-w 参数调整进程(work)数)
- uv run gunicorn -w 4 -b 127.0.0.1:5000 "app:create_app()"
-
-# 项目结构
-项目结构典的不能再典了，不用说了就，很简单的项目。
-
-# 注意事项
 ## 环境变量
+
+复制并按部署环境配置 `.env`：
+
 ```text
-SECRET_KEY=:"dev"
+SECRET_KEY="replace-with-a-strong-secret"
 ALLOWED_ORIGINS="http://localhost:4321"
-GITHUB_REPO="xxxx/xxxx"
-ADMIN_USERNAME="cannian"
-ADMIN_PASSWORD="20050113Xhz."
+GITHUB_REPO="owner/repository"
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="replace-me"
 GITHUB_TOKEN=""
 ```
-```docker-compose.yml
-services:
-  flask_backend:
-    imsage: flask_backend:latest
-    container_name: flask_backend
-    environment:
-      TZ: "Asia/Shanghai"
-    volumes:
-      - ./instance:/flask_backend/instance
-    ports:
-      - "5000:5000"
+
+默认数据库仍为 `instance/app.db`，可通过 `DATABASE_URL` 覆盖。
+
+## 初始化数据库
+
+```sh
+uv run main.py init-db
 ```
+
+该命令会自动创建 `instance/` 目录，并仅调用 SQLAlchemy `create_all` 创建缺失表；不会删除表、迁移或覆盖已有 `app.db`。
+
+## 启动服务
+
+开发环境：
+
+```sh
+uv run main.py
+```
+
+直接使用 Uvicorn：
+
+```sh
+uv run uvicorn --app-dir src app.main:app --host 0.0.0.0 --port 5000
+```
+
+## 测试
+
+```sh
+uv run pytest
+```
+
+测试使用 pytest 提供的临时 SQLite 数据库，不读写 `instance/app.db`。
+
+## Docker
+
+```sh
+docker build -t blog-backend .
+docker run --rm \
+  -p 5000:5000 \
+  -v "$(pwd)/instance:/flask-backend/instance" \
+  --env-file .env \
+  blog-backend
+```
+
+容器继续使用 `/flask-backend` 和 `/flask-backend/instance`，因此旧 SQLite volume 挂载路径保持兼容。镜像启动不会自动初始化、迁移或覆盖数据库。
