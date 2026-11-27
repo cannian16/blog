@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 
-from app.core import db as db_module
 from app.models import Message
 
 
@@ -18,7 +17,7 @@ def test_message_validation(client):
     assert response.status_code == 422
 
 
-def test_message_create_hash_pagination_and_order(client):
+def test_message_create_hash_pagination_and_order(client, session_factory):
     first = client.post("/messages", json={"username": " First ", "email": "First@Test.com", "content": " One "})
     second = client.post(
         "/messages",
@@ -29,7 +28,7 @@ def test_message_create_hash_pagination_and_order(client):
     assert "email" not in first.json()
     assert first.json()["email_hash"] == hashlib.sha256(b"first@test.com").hexdigest()
 
-    with db_module.SessionLocal() as session:
+    with session_factory() as session:
         session.get(Message, first.json()["id"]).created_at = datetime(2024, 1, 1)
         session.get(Message, second.json()["id"]).created_at = datetime(2024, 1, 2)
         session.commit()

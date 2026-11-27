@@ -1,28 +1,60 @@
 from __future__ import annotations
 
-from fastapi.testclient import TestClient
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 import app.core.logging_config as logging_config
-import app.main as main_module
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
-def test_create_app_enables_docs_when_debug(tmp_path, monkeypatch):
-    calls: list[bool] = []
-    monkeypatch.setattr(main_module, "setup_logging", calls.append)
-
-    application = main_module.create_app(
-        f"sqlite:///{(tmp_path / 'debug.db').as_posix()}",
-        create_tables=True,
-        debug=True,
+def _run_app_check(tmp_path: Path, debug: bool, code: str) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "DEBUG": "true" if debug else "false",
+            "DATABASE_URL": f"sqlite:///{(tmp_path / 'docs.db').as_posix()}",
+            "SECRET_KEY": "test-secret-key-with-at-least-32-bytes",
+            "ADMIN_USERNAME": "admin",
+            "ADMIN_PASSWORD": "password",
+        }
     )
-    assert calls == [True]
+    return subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=BACKEND_DIR,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
-    with TestClient(application) as client:
-        assert client.get("/docs").status_code == 200
-        assert client.get("/redoc").status_code == 200
-        schema = client.get("/openapi.json")
-        assert schema.status_code == 200
-        assert "/links" in schema.json()["paths"]
+
+def test_debug_mode_enables_docs(tmp_path):
+    code = (
+        "from fastapi.testclient import TestClient; "
+        "from app.main import app; "
+        "client = TestClient(app); "
+        "assert client.get('/docs').status_code == 200; "
+        "assert client.get('/redoc').status_code == 200; "
+        "assert '/links' in client.get('/openapi.json').json()['paths']"
+    )
+    result = _run_app_check(tmp_path, True, code)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_docs_disabled_by_default(tmp_path):
+    code = (
+        "from fastapi.testclient import TestClient; "
+        "from app.main import app; "
+        "client = TestClient(app); "
+        "assert client.get('/docs').status_code == 404; "
+        "assert client.get('/redoc').status_code == 404; "
+        "assert client.get('/openapi.json').status_code == 404"
+    )
+    result = _run_app_check(tmp_path, False, code)
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_setup_logging_levels_follow_debug(monkeypatch):

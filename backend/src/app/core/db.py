@@ -27,13 +27,9 @@ engine = _make_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
-def configure_database(database_url: str) -> Engine:
-    """Replace the process-local engine, primarily for isolated tests."""
-    global engine, SessionLocal
-    engine.dispose()
-    engine = _make_engine(database_url)
-    SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
-    return engine
+def get_db() -> Generator[Session, None, None]:
+    with SessionLocal() as session:
+        yield session
 
 
 def check_db_health() -> None:
@@ -42,8 +38,3 @@ def check_db_health() -> None:
             connection.execute(text("SELECT 1"))
     except Exception as exc:
         raise ConnectionError(f"数据库连接失败: {exc}") from exc
-
-
-def get_db() -> Generator[Session, None, None]:
-    with SessionLocal() as session:
-        yield session

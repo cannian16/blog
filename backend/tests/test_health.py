@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
+from app.core import db as db_module
 from app.core.db import get_db
-from app.main import create_app
+from app.main import app as main_app
 
 
 def test_healthz_reports_ok(client):
@@ -29,13 +31,15 @@ def test_healthz_returns_503_when_database_unavailable(client):
     assert response.json() == {"status": "error", "database": "unavailable"}
 
 
-def test_startup_fails_when_database_unavailable(tmp_path):
-    database_url = f"sqlite:///{(tmp_path / 'missing' / 'app.db').as_posix()}"
-    application = create_app(database_url, debug=False)
-
-    with pytest.raises(ConnectionError, match="数据库连接失败"):
-        with TestClient(application):
-            pass
+def test_startup_fails_when_database_unavailable(tmp_path, monkeypatch):
+    broken_engine = create_engine(f"sqlite:///{(tmp_path / 'missing' / 'app.db').as_posix()}")
+    monkeypatch.setattr(db_module, "engine", broken_engine)
+    try:
+        with pytest.raises(ConnectionError, match="数据库连接失败"):
+            with TestClient(main_app):
+                pass
+    finally:
+        broken_engine.dispose()
 
 
 def test_trace_id_is_echoed_and_generated(client):
