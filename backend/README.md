@@ -22,8 +22,6 @@ SECRET_KEY="replace-with-a-strong-secret"
 DEBUG="false"
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="replace-me"
-GITHUB_REPO="owner/repository"
-GITHUB_TOKEN=""
 ```
 
 应用通过 `python-dotenv` 加载 `backend/.env`；缺少 `DATABASE_URL` 时会在启动阶段给出明确错误。SQLite 仅用于隔离测试。

@@ -22,7 +22,6 @@ EXPECTED_ROUTES = {
     ("/skills/get", "GET"), ("/skills/add", "POST"), ("/skills/addlist", "POST"), ("/skills/delete", "POST"), ("/skills/update", "POST"),
     ("/tools/get", "GET"), ("/tools/add", "POST"), ("/tools/delete", "POST"), ("/tools/update", "POST"), ("/tools/addlist", "POST"),
     ("/posts/get", "GET"), ("/posts/add", "POST"), ("/posts/delete", "POST"), ("/posts/update", "POST"),
-    ("/system/deploy", "POST"),
 }
 
 
@@ -188,34 +187,6 @@ def test_bulk_resource_endpoints_and_sorting(client, auth_headers):
     assert [item["title"] for item in client.get("/tools/get").json()] == ["T2", "T1"]
 
 
-def test_system_deploy_service_contract(monkeypatch):
-    from types import SimpleNamespace
-    from app.services import system
-
-    monkeypatch.setattr(system, "settings", SimpleNamespace(GITHUB_TOKEN=None, GITHUB_REPO=None))
-    body, status_code = system.trigger_deploy()
-    assert status_code == 500
-    assert body == {"status": "error", "message": "服务器配置缺失：未找到 GitHub Token 或 Repo 路径"}
-
-    class Response:
-        status_code = 204
-        content = b""
-        text = ""
-
-    calls = {}
-    def fake_post(url, *, headers, json, timeout):
-        calls.update(url=url, headers=headers, json=json, timeout=timeout)
-        return Response()
-
-    monkeypatch.setattr(system, "settings", SimpleNamespace(GITHUB_TOKEN="token", GITHUB_REPO="owner/repo"))
-    monkeypatch.setattr(system.requests, "post", fake_post)
-    body, status_code = system.trigger_deploy()
-    assert status_code == 200 and body == {"status": "success", "message": "CI/CD 流程已在 GitHub 启动"}
-    assert calls["url"] == "https://api.github.com/repos/owner/repo/dispatches"
-    assert calls["json"]["event_type"] == "deploy-command"
-    assert calls["timeout"] == 10
-
-
 def test_docs_head_and_exact_options_compatibility(client, auth_headers):
     for path in ("/docs", "/redoc", "/openapi.json"):
         response = client.get(path)
@@ -231,7 +202,7 @@ def test_docs_head_and_exact_options_compatibility(client, auth_headers):
         assert head_response.content == b"", path
 
     business_paths = {path for path, _ in EXPECTED_ROUTES}
-    assert len(business_paths) == 31
+    assert len(business_paths) == 30
     for path in business_paths:
         response = client.options(path)
         assert response.status_code == 200, path

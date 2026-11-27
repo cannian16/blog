@@ -32,8 +32,6 @@ class Settings(BaseSettings):
     SECRET_KEY: str | None = None
     ADMIN_USERNAME: str | None = None
     ADMIN_PASSWORD: str | None = None
-    GITHUB_TOKEN: str | None = None
-    GITHUB_REPO: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=None,

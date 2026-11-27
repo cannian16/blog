@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 
-from app.routers import auth, health, links, messages, posts, skills, songs, system, tools
+from app.routers import auth, health, links, messages, posts, skills, songs, tools
 
 
 def _options_endpoint(allow: str) -> Callable[[], HTMLResponse]:
@@ -64,7 +64,6 @@ for child in (
     tools.router,
     posts.router,
     auth.router,
-    system.router,
     health.router,
 ):
     _add_method_compatibility(child)

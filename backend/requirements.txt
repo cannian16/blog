@@ -11,10 +11,6 @@ anyio==4.16.0
     #   fastapi
     #   starlette
     #   watchfiles
-certifi==2026.2.25
-    # via requests
-charset-normalizer==3.4.6
-    # via requests
 click==8.3.0
     # via uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
@@ -28,9 +24,7 @@ h11==0.16.0
 httptools==0.9.0
     # via uvicorn
 idna==3.11
-    # via
-    #   anyio
-    #   requests
+    # via anyio
 mako==1.4.3
     # via alembic
 markupsafe==3.0.4
@@ -56,8 +50,6 @@ python-dotenv==1.2.2
     #   uvicorn
 pyyaml==6.0.4
     # via uvicorn
-requests==2.33.0
-    # via blog-backend
 sqlalchemy==2.0.48
     # via
     #   alembic
@@ -81,8 +73,6 @@ typing-inspection==0.4.5
     #   fastapi
     #   pydantic
     #   pydantic-settings
-urllib3==2.6.3
-    # via requests
 uvicorn==0.54.0
     # via blog-backend
 uvloop==0.23.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
