@@ -1,20 +1,28 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
-from pathlib import Path
 
 from dotenv import load_dotenv
-
-BACKEND_DIR = Path(__file__).resolve().parents[3]
-DEFAULT_DATABASE_URL = f"sqlite:///{(BACKEND_DIR / 'instance' / 'app.db').as_posix()}"
 
 load_dotenv()
 
 
+def require_database_url(environ: Mapping[str, str] | None = None) -> str:
+    source = os.environ if environ is None else environ
+    database_url = source.get("DATABASE_URL", "").strip()
+    if not database_url:
+        raise RuntimeError(
+            "DATABASE_URL is required. Configure a PostgreSQL connection URL "
+            "in the environment or backend/.env before starting the application."
+        )
+    return database_url
+
+
 @dataclass(frozen=True)
 class Settings:
-    DATABASE_URL: str = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+    DATABASE_URL: str
     SECRET_KEY: str | None = os.getenv("SECRET_KEY")
     ADMIN_USERNAME: str | None = os.getenv("ADMIN_USERNAME")
     ADMIN_PASSWORD: str | None = os.getenv("ADMIN_PASSWORD")
@@ -22,4 +30,4 @@ class Settings:
     GITHUB_REPO: str | None = os.getenv("GITHUB_REPO")
 
 
-settings = Settings()
+settings = Settings(DATABASE_URL=require_database_url())

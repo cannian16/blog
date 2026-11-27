@@ -21,6 +21,11 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      DATABASE_URL: sqlite:///${{ runner.temp }}/blog-backend-ci.db
+      SECRET_KEY: ci-test-key
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: password
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -29,10 +34,11 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - run: uv python install 3.12
       - run: uv sync --frozen
-      - run: uv run --frozen python -m compileall -q src/app main.py
+      - run: uv run --frozen alembic upgrade head
+      - run: uv run --frozen ruff check src tests main.py migrations
+      - run: uv run --frozen python -m compileall -q src tests main.py migrations
       - name: FastAPI startup smoke test
         env:
-          SECRET_KEY: ci-test-key
           DATABASE_URL: "sqlite:///:memory:"
           PYTHONPATH: src
         run: |

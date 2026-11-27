@@ -8,8 +8,7 @@ import jwt
 from sqlalchemy import inspect
 
 from app.core import db as db_module
-from app.core.config import DEFAULT_DATABASE_URL
-from app.models import Link, Message, Post, Skill, Song, Tool
+from app.models import Link, Message, Post, Tool
 from app.schemas.resources import LinkSchema, PostSchema, SkillSchema, SongSchema, ToolSchema
 
 
@@ -74,15 +73,26 @@ def test_crud_for_link_song_skill_and_tool(client, auth_headers):
 
 
 def test_post_crud_and_nested_serialization(client, auth_headers):
-    payload = {"id": "post-one", "title": " Post ", "description": "Desc", "image": "image.png", "tags": ["python"], "category": "Code", "content": "Body"}
+    payload = {"id": "101", "title": " Post ", "description": "Desc", "image": "image.png", "tags": ["python"], "category": "Code", "content": "Body"}
     created = client.post("/posts/add", json=payload, headers=auth_headers)
     assert created.status_code == 201
+    assert created.json()["id"] == 101
     assert created.json()["metadata"]["title"] == "Post"
     assert set(created.json()) == {"id", "metadata", "content"}
-    updated = client.post("/posts/update", json={"id": "post-one", "title": "Updated", "tags": ["api"]}, headers=auth_headers)
+    updated = client.post("/posts/update", json={"id": 101, "title": "Updated", "tags": ["api"]}, headers=auth_headers)
+    assert updated.json()["id"] == 101
     assert updated.json()["metadata"]["tags"] == ["api"]
-    assert client.get("/posts/get").json()[0]["id"] == "post-one"
-    assert client.post("/posts/delete", json={"id": "post-one"}, headers=auth_headers).json() == {"message": "文章已删除"}
+    assert client.get("/posts/get").json()[0]["id"] == 101
+    assert client.post("/posts/delete", json={"id": "101"}, headers=auth_headers).json() == {"message": "文章已删除"}
+
+    for path in ("add", "update", "delete"):
+        response = client.post(
+            f"/posts/{path}",
+            json={"id": "not-a-number", "title": "Post", "content": "Body"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 400
+        assert "error" in response.json()
 
 
 def test_message_validation_hash_pagination_and_order(client):
@@ -128,7 +138,7 @@ def test_model_database_and_schema_field_compatibility(client):
     expected_types = {
         "links": ["INTEGER", "VARCHAR(50)", "VARCHAR(500)", "VARCHAR(200)", "VARCHAR(500)", "DATETIME"],
         "messages": ["INTEGER", "VARCHAR(50)", "VARCHAR(200)", "TEXT", "VARCHAR(100)", "VARCHAR(45)", "VARCHAR(500)", "DATETIME"],
-        "posts": ["VARCHAR(100)", "VARCHAR(200)", "DATETIME", "VARCHAR(200)", "VARCHAR(500)", "JSON", "VARCHAR(100)", "TEXT"],
+        "posts": ["INTEGER", "VARCHAR(200)", "DATETIME", "VARCHAR(200)", "VARCHAR(500)", "JSON", "VARCHAR(100)", "TEXT"],
         "skills": ["INTEGER", "VARCHAR(50)", "VARCHAR(200)", "VARCHAR(200)"],
         "songs": ["INTEGER", "VARCHAR(50)", "VARCHAR(50)", "VARCHAR(200)", "VARCHAR(200)"],
         "tools": ["INTEGER", "VARCHAR(50)", "VARCHAR(50)", "VARCHAR(200)", "VARCHAR(200)", "TEXT"],
@@ -139,7 +149,9 @@ def test_model_database_and_schema_field_compatibility(client):
     assert Tool.__table__.c.imgUrl.nullable is False
     assert Post.__table__.c.tags.nullable is False and Post.__table__.c.tags.default is not None
     assert Post.__table__.c.published.server_default is not None
-    assert Post.__table__.c.description.server_default.arg == "''"
+    assert Post.__table__.c.description.server_default.arg == ""
+    assert Post.__table__.c.image.server_default.arg == ""
+    assert Post.__table__.c.category.server_default.arg == ""
     assert Link.__table__.c.created_at.nullable is True
     assert Message.__table__.c.website_url.nullable is True
     assert set(LinkSchema.model_fields) == {"id", "name", "url", "description", "icon", "created_at"}
@@ -147,7 +159,7 @@ def test_model_database_and_schema_field_compatibility(client):
     assert set(SkillSchema.model_fields) == {"id", "name", "logo", "url"}
     assert set(ToolSchema.model_fields) == {"id", "title", "subtitle", "url", "imgUrl", "content"}
     assert set(PostSchema.model_fields) == {"id", "title", "published", "description", "image", "tags", "category", "content"}
-    assert DEFAULT_DATABASE_URL.endswith("/backend/instance/app.db")
+    assert PostSchema.model_fields["id"].annotation is int
 
 
 def test_bulk_resource_endpoints_and_sorting(client, auth_headers):

@@ -8,59 +8,66 @@
 uv sync --frozen
 ```
 
-## 环境变量
+## PostgreSQL 与环境变量
 
-复制并按部署环境配置 `.env`：
+生产和本地运行均必须提供 `DATABASE_URL`，不再回退到 SQLite。复制示例并填写 PostgreSQL 连接信息：
+
+```sh
+cp .env.example .env
+```
 
 ```text
+DATABASE_URL="postgresql://blog_user:password@localhost:5432/blog"
 SECRET_KEY="replace-with-a-strong-secret"
-GITHUB_REPO="owner/repository"
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="replace-me"
+GITHUB_REPO="owner/repository"
 GITHUB_TOKEN=""
 ```
 
-默认数据库仍为 `instance/app.db`，可通过 `DATABASE_URL` 覆盖。
+应用通过 `python-dotenv` 加载 `backend/.env`；缺少 `DATABASE_URL` 时会在启动阶段给出明确错误。SQLite 仅用于隔离测试。
 
-## 初始化数据库
+## 数据库迁移
+
+首次初始化和后续升级都使用原生 Alembic：
 
 ```sh
-uv run main.py init-db
+uv run alembic upgrade head
+# 或
+make migrate
 ```
 
-该命令会自动创建 `instance/` 目录，并仅调用 SQLAlchemy `create_all` 创建缺失表；不会删除表、迁移或覆盖已有 `app.db`。
+应用和 Docker 镜像启动时不会自动迁移，也不会调用 `create_all`。部署时应在启动新版本前单独执行迁移命令。
 
 ## 启动服务
 
-开发环境：
-
 ```sh
 uv run main.py
+# 或
+make dev
 ```
 
-直接使用 Uvicorn：
+`main.py` 使用 Uvicorn 在 `0.0.0.0:5000` 启动 FastAPI。也可以直接运行：
 
 ```sh
 uv run uvicorn --app-dir src app.main:app --host 0.0.0.0 --port 5000
 ```
 
-## 测试
+## 测试与检查
 
 ```sh
-uv run pytest
+make test
+uv run ruff check src tests main.py migrations
+uv run python -m compileall -q src tests main.py migrations
 ```
 
-测试使用 pytest 提供的临时 SQLite 数据库，不读写 `instance/app.db`。
+测试在导入应用前设置临时 SQLite `DATABASE_URL`；Alembic 测试也只升级临时 SQLite 数据库，不连接 PostgreSQL。
 
 ## Docker
 
 ```sh
 docker build -t blog-backend .
-docker run --rm \
-  -p 5000:5000 \
-  -v "$(pwd)/instance:/flask-backend/instance" \
-  --env-file .env \
-  blog-backend
+docker run --rm -p 5000:5000 --env-file .env blog-backend
 ```
 
-容器继续使用 `/flask-backend` 和 `/flask-backend/instance`，因此旧 SQLite volume 挂载路径保持兼容。镜像启动不会自动初始化、迁移或覆盖数据库。
+容器不创建或挂载 `instance/`，也不会自动执行迁移。运行容器前需针对配置的 PostgreSQL 数据库执行 `uv run alembic upgrade head`（可作为独立部署步骤或一次性任务）。

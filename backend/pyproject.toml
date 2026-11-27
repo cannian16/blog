@@ -5,7 +5,9 @@ description = "FastAPI backend for the blog"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic==1.18.4",
     "fastapi==0.165.0",
+    "psycopg2-binary==2.9.11",
     "pyjwt==2.12.1",
     "python-dotenv==1.2.2",
     "requests==2.33.0",
@@ -17,7 +19,11 @@ dependencies = [
 dev = [
     "httpx==0.28.1",
     "pytest==9.2.0",
+    "ruff==0.15.10",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.uv]
 package = false

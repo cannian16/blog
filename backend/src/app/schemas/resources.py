@@ -42,7 +42,7 @@ class ToolSchema(ORMModel):
 
 
 class PostSchema(ORMModel):
-    id: str
+    id: int
     title: str
     published: datetime | None = None
     description: str = ""

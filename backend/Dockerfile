@@ -17,7 +17,6 @@ COPY --from=builder /flask-backend/.venv /flask-backend/.venv
 ENV PATH="/flask-backend/.venv/bin:$PATH"
 
 COPY . .
-RUN mkdir -p /flask-backend/instance
 
 EXPOSE 5000
 
