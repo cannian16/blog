@@ -40,14 +40,19 @@ opentelemetry-api==1.45.2
 psycopg2-binary==2.9.11
     # via blog-backend
 pydantic==2.14.4
-    # via fastapi
+    # via
+    #   fastapi
+    #   pydantic-settings
 pydantic-core==2.50.5
     # via pydantic
+pydantic-settings==2.16.3
+    # via blog-backend
 pyjwt==2.12.1
     # via blog-backend
 python-dotenv==1.2.2
     # via
     #   blog-backend
+    #   pydantic-settings
     #   uvicorn
 pyyaml==6.0.4
     # via uvicorn
@@ -67,6 +72,7 @@ typing-extensions==4.16.0
     #   opentelemetry-api
     #   pydantic
     #   pydantic-core
+    #   pydantic-settings
     #   sqlalchemy
     #   starlette
     #   typing-inspection
@@ -74,6 +80,7 @@ typing-inspection==0.4.5
     # via
     #   fastapi
     #   pydantic
+    #   pydantic-settings
 urllib3==2.6.3
     # via requests
 uvicorn==0.54.0

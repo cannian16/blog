@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException
 
 from app.core.config import settings
 from app.core.db import Base, configure_database
+from app.core.logging_config import setup_logging
 from app.core.security import AuthenticationError, authentication_error_handler
 from app.models import Link, Message, Post, Skill, Song, Tool  # noqa: F401
 from app.routers import router as api_router
@@ -52,12 +53,24 @@ def _add_method_compatibility(application: FastAPI) -> set[str]:
     return set(methods_by_path)
 
 
-def create_app(database_url: str | None = None, *, create_tables: bool = False) -> FastAPI:
+def create_app(
+    database_url: str | None = None,
+    *,
+    create_tables: bool = False,
+    debug: bool | None = None,
+) -> FastAPI:
+    debug_enabled = settings.DEBUG if debug is None else debug
+    setup_logging(debug_enabled)
+
     selected_engine = configure_database(database_url or settings.DATABASE_URL)
     if create_tables:
         Base.metadata.create_all(selected_engine)
 
-    application = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
+    application = FastAPI(
+        docs_url="/docs" if debug_enabled else None,
+        redoc_url="/redoc" if debug_enabled else None,
+        openapi_url="/openapi.json" if debug_enabled else None,
+    )
     application.add_exception_handler(AuthenticationError, authentication_error_handler)
 
     @application.exception_handler(FlaskHTTPError)

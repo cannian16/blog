@@ -19,6 +19,7 @@ cp .env.example .env
 ```text
 DATABASE_URL="postgresql://blog_user:password@localhost:5432/blog"
 SECRET_KEY="replace-with-a-strong-secret"
+DEBUG="false"
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="replace-me"
 GITHUB_REPO="owner/repository"
@@ -52,6 +53,15 @@ make dev
 ```sh
 uv run uvicorn --app-dir src app.main:app --host 0.0.0.0 --port 5000
 ```
+
+## 调试模式
+
+将 `DEBUG` 设为 `true`（大小写不敏感，也接受 `1`、`yes`、`on`）后：
+
+- 开启 FastAPI 自带的接口文档：`/docs`（Swagger UI）、`/redoc`、`/openapi.json`
+- 日志级别切换为 `DEBUG`，包括 uvicorn 访问日志和应用日志（SQLAlchemy 的 SQL 日志也会输出）
+
+`DEBUG` 未设置或为 `false` 时，上述三个文档路径返回 404，保持与上游 Flask 接口兼容的行为。
 
 ## 测试与检查
 

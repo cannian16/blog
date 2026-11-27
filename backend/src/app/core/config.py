@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import logging
 import os
+import sys
 from collections.abc import Mapping
-from dataclasses import dataclass
 
 from dotenv import load_dotenv
+from pydantic import ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 def require_database_url(environ: Mapping[str, str] | None = None) -> str:
@@ -20,14 +25,34 @@ def require_database_url(environ: Mapping[str, str] | None = None) -> str:
     return database_url
 
 
-@dataclass(frozen=True)
-class Settings:
+class Settings(BaseSettings):
     DATABASE_URL: str
-    SECRET_KEY: str | None = os.getenv("SECRET_KEY")
-    ADMIN_USERNAME: str | None = os.getenv("ADMIN_USERNAME")
-    ADMIN_PASSWORD: str | None = os.getenv("ADMIN_PASSWORD")
-    GITHUB_TOKEN: str | None = os.getenv("GITHUB_TOKEN")
-    GITHUB_REPO: str | None = os.getenv("GITHUB_REPO")
+    DEBUG: bool = False
+
+    SECRET_KEY: str | None = None
+    ADMIN_USERNAME: str | None = None
+    ADMIN_PASSWORD: str | None = None
+    GITHUB_TOKEN: str | None = None
+    GITHUB_REPO: str | None = None
+
+    model_config = SettingsConfigDict(
+        env_file=None,
+        case_sensitive=False,
+        extra="ignore",
+        frozen=True,
+    )
 
 
-settings = Settings(DATABASE_URL=require_database_url())
+def load_settings() -> Settings:
+    database_url = require_database_url()
+    try:
+        return Settings(DATABASE_URL=database_url)
+    except ValidationError as exc:
+        logger.critical("❌ 服务启动失败：环境变量校验未通过")
+        for error in exc.errors():
+            location = "->".join(map(str, error["loc"]))
+            logger.error("  - 缺失/错误项: %s | 原因: %s", location, error["msg"])
+        sys.exit(1)
+
+
+settings = load_settings()

@@ -1,12 +1,12 @@
 services:
   postgresql:
-    image: postgres:latest
+    image: postgres:18
     shm_size: 128mb
     restart: unless-stopped
     ports:
-      -  "127.0.0.1:5432:5432"
+      -  "127.0.0.1:5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     environment:
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev_password
