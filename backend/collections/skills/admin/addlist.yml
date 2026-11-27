@@ -5,7 +5,10 @@ info:
 
 http:
   method: POST
-  url: "{{base_url}}/skills/addlist"
+  url: "{{base_url}}/admin/skills/bulk"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

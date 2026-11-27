@@ -36,3 +36,11 @@ def test_startup_fails_when_database_unavailable(tmp_path):
     with pytest.raises(ConnectionError, match="数据库连接失败"):
         with TestClient(application):
             pass
+
+
+def test_trace_id_is_echoed_and_generated(client):
+    response = client.get("/healthz", headers={"X-Trace-ID": "trace-123"})
+    assert response.headers["x-trace-id"] == "trace-123"
+
+    generated = client.get("/healthz")
+    assert generated.headers["x-trace-id"]

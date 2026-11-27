@@ -10,8 +10,8 @@ let rows = [];
 
 onMount(async () => {
 	try {
-		const response = await api.get("skills/get");
-		Skills = response.data;
+		const response = await api.get("skills");
+		Skills = response.data.items;
 	} catch (err) {
 		console.error("获取技术栈失败:", err);
 	}

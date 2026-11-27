@@ -13,7 +13,7 @@ async function handleAdd(e: Event) {
 	e.preventDefault();
 	isSubmitting = true;
 	try {
-		await api.post("/songs/add", formData);
+		await api.post("/admin/songs", formData);
 		// 提交成功：重置表单 -> 关闭弹窗 -> 刷新列表
 		formData = { title: "", url: "", cover: "", artist: "" };
 		open = false;

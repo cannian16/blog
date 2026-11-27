@@ -29,7 +29,7 @@ function startEdit(link: Link) {
 // 1. 查：初始化获取数据
 onMount(async () => {
 	try {
-		links = await api.get<Link[]>("/links/get");
+		links = (await api.get<{ items: Link[] }>("/links")).items;
 	} catch (err) {
 		alert(`获取失败: ${err}`);
 	} finally {
@@ -39,8 +39,7 @@ onMount(async () => {
 async function deleteLink(id: number) {
 	if (!confirm("确定删除这个链接吗？")) return;
 	try {
-		const response = await api.post("/links/delete", { id });
-		console.log("删除成功:", response);
+		await api.delete(`/admin/links/${id}`);
 		links = links.filter((l) => l.id !== id);
 	} catch (err) {
 		message = `发生错误: ${err}`;
@@ -50,7 +49,7 @@ async function deleteLink(id: number) {
 }
 
 async function refresh() {
-	links = await api.get("/links/get");
+	links = (await api.get<{ items: Link[] }>("/links")).items;
 }
 </script>
 

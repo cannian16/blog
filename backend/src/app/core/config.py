@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str | None = None
     ADMIN_USERNAME: str | None = None
     ADMIN_PASSWORD: str | None = None
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
 
     model_config = SettingsConfigDict(
         env_file=None,

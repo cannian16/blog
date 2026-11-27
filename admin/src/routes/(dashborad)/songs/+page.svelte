@@ -29,7 +29,7 @@ function startEdit(song: Song) {
 // 1. 查：初始化获取数据
 onMount(async () => {
 	try {
-		songs = await api.get<Song[]>("/songs/get");
+		songs = (await api.get<{ items: Song[] }>("/songs")).items;
 	} catch (err) {
 		alert(`获取失败: ${err}`);
 	} finally {
@@ -37,10 +37,9 @@ onMount(async () => {
 	}
 });
 async function deleteSong(id: number) {
-	if (!confirm("确定删除这个链接吗？")) return;
+	if (!confirm("确定删除这首歌曲吗？")) return;
 	try {
-		const response = await api.post("/songs/delete", { id });
-		console.log("删除成功:", response);
+		await api.delete(`/admin/songs/${id}`);
 		songs = songs.filter((l) => l.id !== id);
 	} catch (err) {
 		message = `发生错误: ${err}`;
@@ -50,7 +49,7 @@ async function deleteSong(id: number) {
 }
 
 async function refresh() {
-	songs = await api.get("/songs/get");
+	songs = (await api.get<{ items: Song[] }>("/songs")).items;
 }
 </script>
 

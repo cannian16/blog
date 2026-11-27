@@ -1,30 +1,31 @@
-from typing import Any
+from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.config import settings
 from app.core.security import create_access_token, require_admin
-from app.routers.common import get_json
+from app.schemas.auth import TokenRead, UserRead
 from app.services.auth import verify_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+AVATAR_URL = "https://vip.123pan.cn/1826899604/yk6baz03t0m000d7w33girwfizdpc39iDIYvAqY2BIQOAcx1AdFy.jpg"
 
-@router.post("/login")
-def login(data: Any = Depends(get_json)):
-    data = data if isinstance(data, dict) else {}
-    valid, error_response = verify_admin(data.get("username"), data.get("password"))
+
+@router.post("/login", response_model=TokenRead)
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    valid, error_response = verify_admin(form_data.username, form_data.password)
     if not valid:
         body, status_code = error_response
-        return JSONResponse(content=body, status_code=status_code)
-    return {"token": create_access_token()}
+        raise HTTPException(status_code=status_code, detail=body["message"])
+    return TokenRead(access_token=create_access_token(form_data.username))
 
 
-@router.get("/me")
+@router.get("/me", response_model=UserRead)
 def is_auth(_: dict = Depends(require_admin)):
-    return {
-        "username": settings.ADMIN_USERNAME,
-        "avatar_url": "https://vip.123pan.cn/1826899604/yk6baz03t0m000d7w33girwfizdpc39iDIYvAqY2BIQOAcx1AdFy.jpg",
-        "role": "admin",
-    }
+    return UserRead(
+        username=settings.ADMIN_USERNAME or "",
+        avatar_url=AVATAR_URL,
+        role="admin",
+    )

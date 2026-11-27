@@ -42,4 +42,4 @@ docker run --rm -p 3000:3000 blog-admin
 - `ghcr.io/<owner>/blog-admin:<sha>`
 - `ghcr.io/<owner>/blog-backend:<sha>`
 
-CI 不部署服务器。管理后台首页的手动部署按钮仍依赖原先的 GitHub `repository_dispatch` 流程，新的仓库配置部署流程前不能使用。
+CI 不部署服务器。管理后台的 GitHub `repository_dispatch` 部署按钮已移除，部署流程由仓库外部的 CI/CD 负责。

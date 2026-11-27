@@ -3,4 +3,4 @@ variables:
   - name: base_url
     value: https://api.cannian.space
   - secret: true
-    name: X-API-KEY
+    name: access_token

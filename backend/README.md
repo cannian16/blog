@@ -8,6 +8,8 @@
 uv sync --frozen
 ```
 
+`uv sync` 会把 `src/app` 以可编辑模式安装到 `.venv`，因此测试、Alembic 和 Uvicorn 都可以直接 `import app`，无需设置 `PYTHONPATH`。
+
 ## PostgreSQL 与环境变量
 
 生产和本地运行均必须提供 `DATABASE_URL`，不再回退到 SQLite。复制示例并填写 PostgreSQL 连接信息：
@@ -49,7 +51,7 @@ make dev
 `main.py` 使用 Uvicorn 在 `0.0.0.0:5000` 启动 FastAPI。也可以直接运行：
 
 ```sh
-uv run uvicorn --app-dir src app.main:app --host 0.0.0.0 --port 5000
+uv run uvicorn app.main:app --host 0.0.0.0 --port 5000
 ```
 
 健康检查接口为 `GET /healthz`：数据库可用时返回 `200` 和 `{"status": "ok", "database": "ok"}`，数据库不可用时返回 `503`。应用启动时（lifespan）也会执行一次 `SELECT 1` 连通性检查，数据库不可用则启动失败。
@@ -61,7 +63,19 @@ uv run uvicorn --app-dir src app.main:app --host 0.0.0.0 --port 5000
 - 开启 FastAPI 自带的接口文档：`/docs`（Swagger UI）、`/redoc`、`/openapi.json`
 - 日志级别切换为 `DEBUG`，包括 uvicorn 访问日志和应用日志（SQLAlchemy 的 SQL 日志也会输出）
 
-`DEBUG` 未设置或为 `false` 时，上述三个文档路径返回 404，保持与上游 Flask 接口兼容的行为。
+`DEBUG` 未设置或为 `false` 时，上述三个文档路径返回 404。
+
+`/docs` 右上角的 Authorize 按钮使用 OAuth2 password flow，直接输入 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登录即可。`POST /auth/login` 只接受 `application/x-www-form-urlencoded` 表单，返回 `access_token` / `token_type`。
+
+## 接口概览
+
+- 公共读取：`GET /links`、`/songs`、`/skills`、`/tools`、`/posts`、`/posts/{post_id}`、`/messages`
+- 公共写入：`POST /messages`
+- 健康检查：`GET /healthz`
+- 鉴权：`POST /auth/login`（OAuth2 表单）、`GET /auth/me`
+- 管理接口：`/admin/links`、`/admin/songs`、`/admin/skills`、`/admin/tools`、`/admin/posts`，使用 `POST` 创建、`PATCH /{id}` 更新、`DELETE /{id}` 删除；资源列表统一返回 `{"items": [...]}`
+
+`/admin` 下所有接口都需要 `Authorization: Bearer <token>`。
 
 ## 测试与检查
 

@@ -18,11 +18,12 @@ async function handleUpdate(e: Event) {
 	e.preventDefault();
 	isSubmitting = true;
 	try {
-		await api.post("/links/update", formData);
+		const { id, ...payload } = formData;
+		await api.patch(`/admin/links/${id}`, payload);
 		open = false;
 		onDone();
 	} catch (err) {
-		alert(`新增失败: ${err}`);
+		alert(`保存失败: ${err}`);
 	} finally {
 		isSubmitting = false;
 	}

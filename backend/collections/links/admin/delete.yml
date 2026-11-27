@@ -4,11 +4,11 @@ info:
   seq: 4
 
 http:
-  method: POST
-  url: "{{base_url}}/links/delete"
+  method: DELETE
+  url: "{{base_url}}/admin/links/1"
   headers:
-    - name: X-API-KEY
-      value: "{{X-API-KEY}}"
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

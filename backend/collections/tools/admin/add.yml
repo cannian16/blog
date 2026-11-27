@@ -5,7 +5,10 @@ info:
 
 http:
   method: POST
-  url: "{{base_url}}/tools/add"
+  url: "{{base_url}}/admin/tools"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

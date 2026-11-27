@@ -4,8 +4,11 @@ info:
   seq: 19
 
 http:
-  method: POST
-  url: "{{base_url}}/skills/delete"
+  method: DELETE
+  url: "{{base_url}}/admin/skills/1"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

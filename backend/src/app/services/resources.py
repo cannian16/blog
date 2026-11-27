@@ -7,17 +7,30 @@ T = TypeVar("T")
 
 def save(session: Session, instance: T) -> T:
     session.add(instance)
-    session.commit()
+    try:
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(instance)
     return instance
 
 
 def save_all(session: Session, instances: list[T]) -> None:
-    if instances:
-        session.add_all(instances)
+    if not instances:
+        return
+    session.add_all(instances)
+    try:
         session.commit()
+    except Exception:
+        session.rollback()
+        raise
 
 
 def delete(session: Session, instance: object) -> None:
     session.delete(instance)
-    session.commit()
+    try:
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise

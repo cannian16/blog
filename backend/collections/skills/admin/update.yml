@@ -4,8 +4,11 @@ info:
   seq: 20
 
 http:
-  method: POST
-  url: "{{base_url}}/skills/update"
+  method: PATCH
+  url: "{{base_url}}/admin/skills/1"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

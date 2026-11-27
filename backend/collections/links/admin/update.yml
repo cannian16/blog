@@ -4,11 +4,11 @@ info:
   seq: 8
 
 http:
-  method: POST
-  url: "{{base_url}}/links/update"
+  method: PATCH
+  url: "{{base_url}}/admin/links/1"
   headers:
-    - name: X-API-KEY
-      value: "{{X-API-KEY}}"
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

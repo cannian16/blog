@@ -4,8 +4,11 @@ info:
   seq: 3
 
 http:
-  method: POST
-  url: "{{base_url}}/tools/update"
+  method: PATCH
+  url: "{{base_url}}/admin/tools/1"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

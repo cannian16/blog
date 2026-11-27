@@ -22,7 +22,7 @@ def test_create_app_enables_docs_when_debug(tmp_path, monkeypatch):
         assert client.get("/redoc").status_code == 200
         schema = client.get("/openapi.json")
         assert schema.status_code == 200
-        assert "/links/get" in schema.json()["paths"]
+        assert "/links" in schema.json()["paths"]
 
 
 def test_setup_logging_levels_follow_debug(monkeypatch):

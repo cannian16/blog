@@ -5,10 +5,10 @@ info:
 
 http:
   method: POST
-  url: "{{base_url}}/links/add"
+  url: "{{base_url}}/admin/links"
   headers:
-    - name: X-API-KEY
-      value: "{{X-API-KEY}}"
+    - name: Authorization
+      value: "Bearer {{access_token}}"
   body:
     type: json
     data: |-

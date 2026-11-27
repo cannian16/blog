@@ -9,9 +9,80 @@ import pytest
 from sqlalchemy import create_engine, inspect, text
 
 from app.core.config import require_database_url
+from app.core.db import Base
+import app.models  # noqa: F401
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 EXPECTED_TABLES = {"links", "messages", "posts", "skills", "songs", "tools"}
+
+EXPECTED_COLUMNS = {
+    "links": [
+        ("id", "INTEGER", False, True, None),
+        ("name", "VARCHAR(50)", False, False, None),
+        ("url", "VARCHAR(500)", False, False, None),
+        ("description", "VARCHAR(200)", False, False, None),
+        ("icon", "VARCHAR(500)", False, False, None),
+        ("created_at", "DATETIME", True, False, "now()"),
+    ],
+    "messages": [
+        ("id", "INTEGER", False, True, None),
+        ("username", "VARCHAR(50)", False, False, None),
+        ("website_url", "VARCHAR(200)", True, False, None),
+        ("content", "TEXT", False, False, None),
+        ("email", "VARCHAR(100)", False, False, None),
+        ("ip_address", "VARCHAR(45)", True, False, None),
+        ("user_agent", "VARCHAR(500)", True, False, None),
+        ("created_at", "DATETIME", True, False, "now()"),
+    ],
+    "posts": [
+        ("id", "INTEGER", False, True, None),
+        ("title", "VARCHAR(200)", False, False, None),
+        ("published", "DATETIME", False, False, "now()"),
+        ("description", "VARCHAR(200)", False, False, ""),
+        ("image", "VARCHAR(500)", False, False, ""),
+        ("tags", "JSON", False, False, None),
+        ("category", "VARCHAR(100)", False, False, ""),
+        ("content", "TEXT", False, False, None),
+    ],
+    "skills": [
+        ("id", "INTEGER", False, True, None),
+        ("name", "VARCHAR(50)", False, False, None),
+        ("logo", "VARCHAR(200)", False, False, None),
+        ("url", "VARCHAR(200)", False, False, None),
+    ],
+    "songs": [
+        ("id", "INTEGER", False, True, None),
+        ("title", "VARCHAR(50)", False, False, None),
+        ("artist", "VARCHAR(50)", False, False, None),
+        ("url", "VARCHAR(200)", False, False, None),
+        ("cover", "VARCHAR(200)", False, False, None),
+    ],
+    "tools": [
+        ("id", "INTEGER", False, True, None),
+        ("title", "VARCHAR(50)", False, False, None),
+        ("subtitle", "VARCHAR(50)", False, False, None),
+        ("url", "VARCHAR(200)", False, False, None),
+        ("imgUrl", "VARCHAR(200)", False, False, None),
+        ("content", "TEXT", False, False, None),
+    ],
+}
+
+
+def test_model_table_structure_is_unchanged():
+    assert set(Base.metadata.tables) == EXPECTED_TABLES
+    for table_name, expected_columns in EXPECTED_COLUMNS.items():
+        table = Base.metadata.tables[table_name]
+        actual_columns = [
+            (
+                column.name,
+                str(column.type),
+                column.nullable,
+                column.primary_key,
+                str(column.server_default.arg) if column.server_default else None,
+            )
+            for column in table.columns
+        ]
+        assert actual_columns == expected_columns
 
 
 def test_database_url_is_required() -> None:

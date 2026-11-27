@@ -28,7 +28,7 @@ function startEdit(skill: Skill) {
 // 1. 查：初始化获取数据
 onMount(async () => {
 	try {
-		skills = await api.get<Skill[]>("/skills/get");
+		skills = (await api.get<{ items: Skill[] }>("/skills")).items;
 	} catch (err) {
 		alert(`获取失败: ${err}`);
 	} finally {
@@ -36,10 +36,9 @@ onMount(async () => {
 	}
 });
 async function deleteSkill(id: number) {
-	if (!confirm("确定删除这个链接吗？")) return;
+	if (!confirm("确定删除这个技能吗？")) return;
 	try {
-		const response = await api.post("/skills/delete", { id });
-		console.log("删除成功:", response);
+		await api.delete(`/admin/skills/${id}`);
 		skills = skills.filter((l) => l.id !== id);
 	} catch (err) {
 		message = `发生错误: ${err}`;
@@ -49,7 +48,7 @@ async function deleteSkill(id: number) {
 }
 
 async function refresh() {
-	skills = await api.get("/skills/get");
+	skills = (await api.get<{ items: Skill[] }>("/skills")).items;
 }
 </script>
 
