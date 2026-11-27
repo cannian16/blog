@@ -1,6 +1,7 @@
 name: production
 variables:
   - name: base_url
-    value: https://api.cannian.space
+    value: https://blog.cannian.space/api
+    description: ""
   - secret: true
     name: access_token

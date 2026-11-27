@@ -7,6 +7,7 @@
 - `site/`: Astro 博客站点；文章位于 `site/src/content/posts/`
 - `admin/`: SvelteKit 管理后台
 - `backend/`: FastAPI API，生产数据库使用 PostgreSQL
+- `bruno/`: Bruno API collection（OpenCollection YAML）
 
 ## 本地开发
 

@@ -1,0 +1,23 @@
+info:
+  name: login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{base_url}}/auth/login"
+  body:
+    type: form-urlencoded
+    data:
+      - name: username
+        value: admin
+      - name: password
+        value: password
+  auth: inherit
+
+# 登录成功后，把响应里的 access_token 填入 development 环境变量
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -2,5 +2,6 @@ name: development
 variables:
   - name: base_url
     value: http://127.0.0.1:5000
-  - name: access_token
-    value: ""
+  - secret: true
+    name: access_token
+    description: ""

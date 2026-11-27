@@ -9,7 +9,6 @@ __pycache__
 .ruff_cache
 instance
 tests
-collections
 requirements.txt
 main.py
 .dockerignore

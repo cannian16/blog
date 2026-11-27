@@ -1,0 +1,30 @@
+info:
+  name: add
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{base_url}}/admin/posts"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "id": 101,
+        "title": "新的文章",
+        "description": "文章摘要",
+        "image": "https://example.com/cover.png",
+        "tags": ["FastAPI", "PostgreSQL"],
+        "category": "Code",
+        "content": "# 正文\n\n文章内容"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

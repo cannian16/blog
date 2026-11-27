@@ -77,6 +77,10 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 5000
 
 `/admin` 下所有接口都需要 `Authorization: Bearer <token>`。
 
+## API 调试
+
+仓库内置 Bruno collection：`bruno/`（OpenCollection YAML）。用 Bruno 打开该目录，选择 `development` 环境（`base_url` 默认 `http://127.0.0.1:5000`），先调用 `auth/login`，再把响应中的 `access_token` 填入环境变量，即可访问 `/admin` 接口。
+
 ## 测试与检查
 
 测试使用 PostgreSQL，先启动 compose 中的数据库：
