@@ -162,9 +162,9 @@ const handleScroll = () => {
 };
 
 onMount(() => {
-	api.get("tools/get")
+	api.get("tools")
 		.then((response) => {
-			cards = response.data;
+			cards = response.data.items;
 		})
 		.catch((err) => {
 			console.error("获取工具列表失败:", err);

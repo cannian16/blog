@@ -1,15 +1,35 @@
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
+
 [project]
-name = "flask-backend"
+name = "blog-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "FastAPI backend for the blog"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "flask>=3.1.2",
-    "flask-cors>=6.0.1",
-    "gunicorn>=23.0.0",
-    "flask-sqlalchemy>=3.1.1",
-    "python-dotenv>=1.2.2",
-    "pyjwt>=2.12.1",
-    "requests>=2.33.0",
+    "alembic==1.18.4",
+    "fastapi==0.165.0",
+    "psycopg2-binary==2.9.11",
+    "pydantic-settings==2.16.3",
+    "pyjwt==2.12.1",
+    "python-dotenv==1.2.2",
+    "python-multipart==0.0.34",
+    "sqlalchemy==2.0.48",
+    "uvicorn[standard]==0.54.0",
 ]
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.1",
+    "pytest==9.2.0",
+    "ruff==0.15.10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.uv.build-backend]
+module-name = "app"
+module-root = "src"

@@ -30,6 +30,31 @@ const envFile = fileURLToPath(new URL("./.env", import.meta.url));
 if (existsSync(envFile)) process.loadEnvFile(envFile);
 const devApiTarget = process.env.DEV_API_TARGET;
 
+// Astro dev server 会把 trailingSlash 中间件插到 Vite 中间件栈最前面，
+// 在 trailingSlash: "always" 时对不带斜杠且无扩展名的路径直接返回 404，
+// 导致 /api/messages 这类请求根本到不了 Vite 的代理。这里在 Astro 安装完中间件后，
+// 让 /api 前缀跳过该检查，交给下面的 vite.server.proxy 处理。
+const devApiTrailingSlashPlugin = {
+	name: "dev-api-trailing-slash",
+	enforce: "post",
+	configureServer(server) {
+		return () => {
+			const layer = server.middlewares.stack.find(
+				(item) => item.handle && item.handle.name === "devTrailingSlash",
+			);
+			if (!layer) return;
+			const originalHandle = layer.handle;
+			layer.handle = function (req, res, next) {
+				const pathname = (req.url ?? "").split("?")[0];
+				if (pathname === "/api" || pathname.startsWith("/api/")) {
+					return next();
+				}
+				return originalHandle(req, res, next);
+			};
+		};
+	},
+};
+
 // https://astro.build/config
 export default defineConfig({
 	site: "https://blog.cannian.space/",
@@ -161,9 +186,10 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		plugins: devApiTarget ? [devApiTrailingSlashPlugin] : [],
 		server: {
 			proxy: devApiTarget ? {
-				"/api/": {
+				"/api": {
 					target: devApiTarget,
 					changeOrigin: true,
 					rewrite: (path) => path.replace(/^\/api/, ""),

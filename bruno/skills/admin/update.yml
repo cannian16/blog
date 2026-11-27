@@ -1,0 +1,27 @@
+info:
+  name: update
+  type: http
+  seq: 20
+
+http:
+  method: PATCH
+  url: "{{base_url}}/admin/skills/1"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "id" : "1",
+        "name" : "",
+        "logo" : "",
+        "url" : ""
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

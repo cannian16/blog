@@ -24,6 +24,16 @@ let formData = {
 	email: "",
 };
 
+// 从 FastAPI 错误体中提取可读信息
+function errorDetail(err) {
+	const detail = err?.response?.data?.detail;
+	if (typeof detail === "string") return detail;
+	if (Array.isArray(detail)) {
+		return detail.map((item) => item?.msg ?? String(item)).join("; ");
+	}
+	return err?.response?.status;
+}
+
 // 获取留言列表
 async function fetchMessages(page = 1) {
 	loading = true;
@@ -35,13 +45,18 @@ async function fetchMessages(page = 1) {
 			limit: pagination.limit,
 		};
 
-		const response = await api.get("messages/get", { params });
+		const response = await api.get("messages", { params });
 
-		messages = response.data.messages;
-		pagination = response.data.pagination;
+		messages = response.data.items;
+		pagination = {
+			page: response.data.page,
+			limit: response.data.limit,
+			total: response.data.total,
+			pages: response.data.pages,
+		};
 	} catch (err) {
 		if (err.response) {
-			error = `获取留言失败: ${err.response.data.error || err.response.status}`;
+			error = `获取留言失败: ${errorDetail(err) || err.response.status}`;
 		} else if (err.request) {
 			error = "网络错误，无法连接到服务器";
 		} else {
@@ -60,7 +75,7 @@ async function submitMessage() {
 	success = "";
 
 	try {
-		const response = await api.post("messages/add", formData);
+		const response = await api.post("messages", formData);
 
 		// 清空表单
 		formData = {
@@ -75,7 +90,7 @@ async function submitMessage() {
 		fetchMessages(1);
 	} catch (err) {
 		if (err.response) {
-			error = err.response.data.error || "提交留言失败";
+			error = errorDetail(err) || "提交留言失败";
 		} else if (err.request) {
 			error = "网络错误，无法连接到服务器";
 		} else {

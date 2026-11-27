@@ -13,7 +13,7 @@ async function handleAdd(e: Event) {
 	e.preventDefault();
 	isSubmitting = true;
 	try {
-		await api.post("/skills/add", formData);
+		await api.post("/admin/skills", formData);
 		// 提交成功：重置表单 -> 关闭弹窗 -> 刷新列表
 		formData = { name: "", url: "", logo: "" };
 		open = false;

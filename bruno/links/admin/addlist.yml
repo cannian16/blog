@@ -1,0 +1,35 @@
+info:
+  name: addlist
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{base_url}}/admin/links/bulk"
+  headers:
+    - name: Authorization
+      value: "Bearer {{access_token}}"
+  body:
+    type: json
+    data: |-
+      [
+        {
+          "name": "Rei",
+          "url": "https://rei-330.github.io/",
+          "description": "",
+          "icon": "https://vip.123pan.cn/1826899604/ymjew503t0l000d7w32xhnwjtgskx76sDIYvAqY2BIQOAcx1AdFy.jpg"
+        },
+        {
+          "name": "Example",
+          "url": "https://example.com",
+          "description": "示例友链",
+          "icon": ""
+        }
+      ]
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

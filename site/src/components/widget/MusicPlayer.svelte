@@ -10,8 +10,8 @@ let songs = [];
 // 初始化歌单
 onMount(async () => {
 	try {
-		const response = await api.get("songs/get");
-		songs = response.data;
+		const response = await api.get("songs");
+		songs = response.data.items;
 		if (songs.length > 0) {
 			audioElement.src = songs[currentSongIndex].url;
 		}

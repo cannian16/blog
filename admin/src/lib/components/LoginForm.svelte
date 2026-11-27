@@ -13,21 +13,25 @@ let user = $state({
 });
 
 interface LoginResponse {
-	token: string;
+	access_token: string;
+	token_type: string;
 }
 async function handleSubmit(e: SubmitEvent) {
 	e.preventDefault();
 	isLoading = true;
 
 	try {
-		const data = await api.post<LoginResponse>("/auth/login", user);
-		console.log("提交成功:", data);
-		if (data.token) {
-			localStorage.setItem("jwt_token", data.token);
+		const form = new URLSearchParams({
+			username: user.username,
+			password: user.password,
+		});
+		const data = await api.postForm<LoginResponse>("/auth/login", form);
+		if (data.access_token) {
+			localStorage.setItem("jwt_token", data.access_token);
 		}
 		await goto("/", { replaceState: true });
 	} catch (err) {
-		message = err;
+		message = err instanceof Error ? err.message : String(err);
 	} finally {
 		isLoading = false;
 	}

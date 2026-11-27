@@ -6,8 +6,8 @@ let links = [];
 
 onMount(async () => {
 	try {
-		const response = await api.get("links/get");
-		links = response.data;
+		const response = await api.get("links");
+		links = response.data.items;
 	} catch (err) {
 		console.error("获取友链失败:", err);
 	}

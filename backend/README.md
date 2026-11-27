@@ -1,50 +1,110 @@
-# 应用的CLI命令
-下面所有的命令的工作路径都在项目的根目录
+# Blog FastAPI Backend
 
-## 初始化数据库
-在utils/commands.py里注册的命令
-```bash
-#flask自动发现应用工厂的方式创建数据库
-uv run flask init-db
-#显式指定应用工厂入口--app <包名>:<函数名>
-uv run flask --app app:create_app init-db
+以下命令均在 `backend/` 目录执行。
+
+## 安装依赖
+
+```sh
+uv sync --frozen
 ```
 
-## 启动开发服务器
-```bash
-# 传统方式,把app包导出来执行工厂函数赋给实例，执行run方法
-uv run main.py
-# 显式指定包和creat_app函数
-flask --app app:create_app run --debug
-# 自动识别create_app函数，并运行实例
-uv run flask run
+`uv sync` 会把 `src/app` 以可编辑模式安装到 `.venv`，因此测试、Alembic 和 Uvicorn 都可以直接 `import app`，无需设置 `PYTHONPATH`。
+
+## PostgreSQL 与环境变量
+
+生产和本地运行均必须提供 `DATABASE_URL`，不再回退到 SQLite。复制示例并填写 PostgreSQL 连接信息：
+
+```sh
+cp .env.example .env
 ```
 
-## 启动生产服务器(-w 参数调整进程(work)数)
- uv run gunicorn -w 4 -b 127.0.0.1:5000 "app:create_app()"
-
-# 项目结构
-项目结构典的不能再典了，不用说了就，很简单的项目。
-
-# 注意事项
-## 环境变量
 ```text
-SECRET_KEY=:"dev"
-ALLOWED_ORIGINS="http://localhost:4321"
-GITHUB_REPO="xxxx/xxxx"
-ADMIN_USERNAME="cannian"
-ADMIN_PASSWORD="20050113Xhz."
-GITHUB_TOKEN=""
+DATABASE_URL="postgresql://blog_user:password@localhost:5432/blog"
+SECRET_KEY="replace-with-a-strong-secret"
+DEBUG="false"
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="replace-me"
 ```
-```docker-compose.yml
-services:
-  flask_backend:
-    imsage: flask_backend:latest
-    container_name: flask_backend
-    environment:
-      TZ: "Asia/Shanghai"
-    volumes:
-      - ./instance:/flask_backend/instance
-    ports:
-      - "5000:5000"
+
+应用通过 `python-dotenv` 加载 `backend/.env`；缺少 `DATABASE_URL` 时会在启动阶段给出明确错误。测试同样使用 PostgreSQL。
+
+## 数据库迁移
+
+首次初始化和后续升级都使用原生 Alembic：
+
+```sh
+uv run alembic upgrade head
+# 或
+make migrate
+```
+
+应用和 Docker 镜像启动时不会自动迁移，也不会调用 `create_all`。部署时应在启动新版本前单独执行迁移命令。
+
+## 启动服务
+
+```sh
+uv run main.py
+# 或
+make dev
+```
+
+`main.py` 使用 Uvicorn 在 `0.0.0.0:5000` 启动 FastAPI。也可以直接运行：
+
+```sh
+uv run uvicorn app.main:app --host 0.0.0.0 --port 5000
+```
+
+健康检查接口为 `GET /healthz`：数据库可用时返回 `200` 和 `{"status": "ok", "database": "ok"}`，数据库不可用时返回 `503`。应用启动时（lifespan）也会执行一次 `SELECT 1` 连通性检查，数据库不可用则启动失败。
+
+## 调试模式
+
+将 `DEBUG` 设为 `true`（大小写不敏感，也接受 `1`、`yes`、`on`）后：
+
+- 开启 FastAPI 自带的接口文档：`/docs`（Swagger UI）、`/redoc`、`/openapi.json`
+- 日志级别切换为 `DEBUG`，包括 uvicorn 访问日志和应用日志（SQLAlchemy 的 SQL 日志也会输出）
+
+`DEBUG` 未设置或为 `false` 时，上述三个文档路径返回 404。
+
+`/docs` 右上角的 Authorize 按钮使用 OAuth2 password flow，直接输入 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登录即可。`POST /auth/login` 只接受 `application/x-www-form-urlencoded` 表单，返回 `access_token` / `token_type`。
+
+## 接口概览
+
+- 公共读取：`GET /links`、`/songs`、`/skills`、`/tools`、`/posts`、`/posts/{post_id}`、`/messages`
+- 公共写入：`POST /messages`
+- 健康检查：`GET /healthz`
+- 鉴权：`POST /auth/login`（OAuth2 表单）、`GET /auth/me`
+- 管理接口：`/admin/links`、`/admin/songs`、`/admin/skills`、`/admin/tools`、`/admin/posts`，使用 `POST` 创建、`PATCH /{id}` 更新、`DELETE /{id}` 删除；资源列表统一返回 `{"items": [...]}`
+
+`/admin` 下所有接口都需要 `Authorization: Bearer <token>`。
+
+## API 调试
+
+仓库内置 Bruno collection：`bruno/`（OpenCollection YAML）。用 Bruno 打开该目录，选择 `development` 环境（`base_url` 默认 `http://127.0.0.1:5000`），先调用 `auth/login`，再把响应中的 `access_token` 填入环境变量，即可访问 `/admin` 接口。
+
+## 测试与检查
+
+测试使用 PostgreSQL，先启动 compose 中的数据库：
+
+```sh
+docker compose up -d postgresql
+make test
+uv run ruff check src tests main.py migrations
+uv run python -m compileall -q src tests main.py migrations
+```
+
+测试默认连接 `postgresql://dev:dev_password@127.0.0.1:5433/blog_test`（与根目录 `docker-compose.yaml` 一致），可通过 `TEST_DATABASE_URL` 覆盖。测试启动时会自动创建测试库并执行 `alembic upgrade head`，每个用例前清空业务表；迁移测试会在独立的临时数据库中执行 `alembic upgrade head`，不会触碰 `blog` 开发库。
+
+## Docker
+
+```sh
+docker build -t blog-backend .
+docker run --rm -p 5000:5000 --env-file .env blog-backend
+```
+
+镜像以 `/app` 为工作目录，构建阶段使用 uv 把项目以非 editable 模式安装进 `/app/.venv`，容器内直接运行 `uvicorn app.main:app`。
+
+容器不创建或挂载 `instance/`，也不会自动执行迁移。运行容器前需针对配置的 PostgreSQL 数据库单独执行迁移（可作为独立部署步骤或一次性任务）：
+
+```sh
+docker run --rm --env-file .env blog-backend alembic upgrade head
 ```
