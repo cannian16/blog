@@ -36,7 +36,7 @@ docker run --rm -p 3000:3000 blog-admin
 
 ## CI
 
-`.github/workflows/` 分别检查 `site/`、`admin/` 和 `backend/`。后端 CI 使用临时 SQLite 验证 Alembic 和接口，不连接生产 PostgreSQL。相关目录变更时，PR 会运行检查并验证 Docker 构建；推送到 `main` 时，检查通过后还会发布以下镜像到 GHCR，标签为提交 SHA 的前 7 位：
+`.github/workflows/` 分别检查 `site/`、`admin/` 和 `backend/`。后端 CI 使用 PostgreSQL service 验证 Alembic 和接口。相关目录变更时，PR 会运行检查、构建 Docker 镜像、执行迁移并启动容器验证 `/healthz`；推送到 `main` 时，检查通过后还会发布以下镜像到 GHCR，标签为提交 SHA 的前 7 位：
 
 - `ghcr.io/<owner>/blog-site:<sha>`
 - `ghcr.io/<owner>/blog-admin:<sha>`

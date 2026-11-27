@@ -10,12 +10,11 @@ import app.core.logging_config as logging_config
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
-def _run_app_check(tmp_path: Path, debug: bool, code: str) -> subprocess.CompletedProcess[str]:
+def _run_app_check(debug: bool, code: str) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
     environment.update(
         {
             "DEBUG": "true" if debug else "false",
-            "DATABASE_URL": f"sqlite:///{(tmp_path / 'docs.db').as_posix()}",
             "SECRET_KEY": "test-secret-key-with-at-least-32-bytes",
             "ADMIN_USERNAME": "admin",
             "ADMIN_PASSWORD": "password",
@@ -31,7 +30,7 @@ def _run_app_check(tmp_path: Path, debug: bool, code: str) -> subprocess.Complet
     )
 
 
-def test_debug_mode_enables_docs(tmp_path):
+def test_debug_mode_enables_docs():
     code = (
         "from fastapi.testclient import TestClient; "
         "from app.main import app; "
@@ -40,11 +39,11 @@ def test_debug_mode_enables_docs(tmp_path):
         "assert client.get('/redoc').status_code == 200; "
         "assert '/links' in client.get('/openapi.json').json()['paths']"
     )
-    result = _run_app_check(tmp_path, True, code)
+    result = _run_app_check(True, code)
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-def test_docs_disabled_by_default(tmp_path):
+def test_docs_disabled_by_default():
     code = (
         "from fastapi.testclient import TestClient; "
         "from app.main import app; "
@@ -53,7 +52,7 @@ def test_docs_disabled_by_default(tmp_path):
         "assert client.get('/redoc').status_code == 404; "
         "assert client.get('/openapi.json').status_code == 404"
     )
-    result = _run_app_check(tmp_path, False, code)
+    result = _run_app_check(False, code)
     assert result.returncode == 0, result.stdout + result.stderr
 
 

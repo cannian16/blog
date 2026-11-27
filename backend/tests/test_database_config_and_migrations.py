@@ -4,9 +4,13 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
+from alembic.autogenerate import compare_metadata
+from alembic.migration import MigrationContext
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import make_url
 
 from app.core.config import require_database_url
 from app.core.db import Base
@@ -89,29 +93,51 @@ def test_database_url_is_required() -> None:
     with pytest.raises(RuntimeError, match="DATABASE_URL is required"):
         require_database_url({})
 
-    assert require_database_url({"DATABASE_URL": " sqlite:///:memory: "}) == "sqlite:///:memory:"
-
-
-def test_alembic_upgrade_creates_expected_schema(tmp_path: Path) -> None:
-    database_path = tmp_path / "alembic.db"
-    database_url = f"sqlite:///{database_path.as_posix()}"
-    environment = os.environ.copy()
-    environment["DATABASE_URL"] = database_url
-
-    result = subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
-        cwd=BACKEND_DIR,
-        env=environment,
-        capture_output=True,
-        text=True,
-        check=False,
+    assert require_database_url({"DATABASE_URL": " postgresql://u:p@localhost/db "}) == (
+        "postgresql://u:p@localhost/db"
     )
-    assert result.returncode == 0, result.stdout + result.stderr
 
-    engine = create_engine(database_url)
-    inspector = inspect(engine)
-    assert set(inspector.get_table_names()) == EXPECTED_TABLES | {"alembic_version"}
-    assert str(inspector.get_columns("posts")[0]["type"]) == "INTEGER"
-    with engine.connect() as connection:
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "13a55da86116"
-    engine.dispose()
+
+def test_alembic_upgrade_creates_expected_schema(test_database_url: str) -> None:
+    base_url = make_url(test_database_url)
+    database_name = f"blog_migration_test_{uuid4().hex[:12]}"
+    migration_url = base_url.set(database=database_name)
+
+    admin_engine = create_engine(base_url.set(database="postgres"), isolation_level="AUTOCOMMIT")
+    with admin_engine.connect() as connection:
+        connection.execute(text(f'CREATE DATABASE "{database_name}"'))
+
+    try:
+        environment = os.environ.copy()
+        environment["DATABASE_URL"] = migration_url.render_as_string(hide_password=False)
+
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            cwd=BACKEND_DIR,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+
+        engine = create_engine(migration_url)
+        try:
+            inspector = inspect(engine)
+            assert set(inspector.get_table_names()) == EXPECTED_TABLES | {"alembic_version"}
+            with engine.connect() as connection:
+                migration_context = MigrationContext.configure(
+                    connection,
+                    opts={"compare_type": True},
+                )
+                assert compare_metadata(migration_context, Base.metadata) == []
+                assert (
+                    connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+                    == "13a55da86116"
+                )
+        finally:
+            engine.dispose()
+    finally:
+        with admin_engine.connect() as connection:
+            connection.execute(text(f'DROP DATABASE IF EXISTS "{database_name}" WITH (FORCE)'))
+        admin_engine.dispose()

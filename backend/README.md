@@ -26,7 +26,7 @@ ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="replace-me"
 ```
 
-应用通过 `python-dotenv` 加载 `backend/.env`；缺少 `DATABASE_URL` 时会在启动阶段给出明确错误。SQLite 仅用于隔离测试。
+应用通过 `python-dotenv` 加载 `backend/.env`；缺少 `DATABASE_URL` 时会在启动阶段给出明确错误。测试同样使用 PostgreSQL。
 
 ## 数据库迁移
 
@@ -79,13 +79,16 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 5000
 
 ## 测试与检查
 
+测试使用 PostgreSQL，先启动 compose 中的数据库：
+
 ```sh
+docker compose up -d postgresql
 make test
 uv run ruff check src tests main.py migrations
 uv run python -m compileall -q src tests main.py migrations
 ```
 
-测试在导入应用前设置临时 SQLite `DATABASE_URL`；Alembic 测试也只升级临时 SQLite 数据库，不连接 PostgreSQL。
+测试默认连接 `postgresql://dev:dev_password@127.0.0.1:5433/blog_test`（与根目录 `docker-compose.yaml` 一致），可通过 `TEST_DATABASE_URL` 覆盖。测试启动时会自动创建测试库并执行 `alembic upgrade head`，每个用例前清空业务表；迁移测试会在独立的临时数据库中执行 `alembic upgrade head`，不会触碰 `blog` 开发库。
 
 ## Docker
 
@@ -94,4 +97,10 @@ docker build -t blog-backend .
 docker run --rm -p 5000:5000 --env-file .env blog-backend
 ```
 
-容器不创建或挂载 `instance/`，也不会自动执行迁移。运行容器前需针对配置的 PostgreSQL 数据库执行 `uv run alembic upgrade head`（可作为独立部署步骤或一次性任务）。
+镜像以 `/app` 为工作目录，构建阶段使用 uv 把项目以非 editable 模式安装进 `/app/.venv`，容器内直接运行 `uvicorn app.main:app`。
+
+容器不创建或挂载 `instance/`，也不会自动执行迁移。运行容器前需针对配置的 PostgreSQL 数据库单独执行迁移（可作为独立部署步骤或一次性任务）：
+
+```sh
+docker run --rm --env-file .env blog-backend alembic upgrade head
+```

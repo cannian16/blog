@@ -18,18 +18,34 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: blog
+          POSTGRES_PASSWORD: blog
+          POSTGRES_DB: blog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blog -d blog_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend
     env:
-      DATABASE_URL: sqlite:///${{ runner.temp }}/blog-backend-ci.db
-      SECRET_KEY: ci-test-key
+      DATABASE_URL: postgresql://blog:blog@127.0.0.1:5432/blog_test
+      TEST_DATABASE_URL: postgresql://blog:blog@127.0.0.1:5432/blog_test
+      SECRET_KEY: ci-test-key-with-at-least-32-bytes
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: password
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
+          version: "0.13.7"
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
       - run: uv python install 3.12
@@ -38,8 +54,6 @@ jobs:
       - run: uv run --frozen ruff check src tests main.py migrations
       - run: uv run --frozen python -m compileall -q src tests main.py migrations
       - name: FastAPI startup smoke test
-        env:
-          DATABASE_URL: "sqlite:///:memory:"
         run: |
           uv run --frozen python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); assert client.get('/healthz').status_code == 200; assert '/auth/login' in client.app.openapi()['paths']"
       - run: uv run --frozen pytest
@@ -47,6 +61,20 @@ jobs:
   image:
     needs: check
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: blog
+          POSTGRES_PASSWORD: blog
+          POSTGRES_DB: blog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blog -d blog_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     permissions:
       contents: read
       packages: write
@@ -70,9 +98,34 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha,scope=backend
           cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max,scope=backend' || '' }}
+      - name: Image migration and startup smoke test
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          IMAGE="${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}"
+          docker run --rm --add-host=host.docker.internal:host-gateway \
+            -e DATABASE_URL=postgresql://blog:blog@host.docker.internal:5432/blog_test \
+            -e SECRET_KEY=ci-test-key-with-at-least-32-bytes \
+            "$IMAGE" alembic upgrade head
+          docker run -d --name backend-smoke -p 5000:5000 \
+            --add-host=host.docker.internal:host-gateway \
+            -e DATABASE_URL=postgresql://blog:blog@host.docker.internal:5432/blog_test \
+            -e SECRET_KEY=ci-test-key-with-at-least-32-bytes \
+            "$IMAGE"
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5000/healthz; then
+              docker rm -f backend-smoke
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs backend-smoke
+          docker rm -f backend-smoke
+          exit 1

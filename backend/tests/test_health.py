@@ -31,8 +31,11 @@ def test_healthz_returns_503_when_database_unavailable(client):
     assert response.json() == {"status": "error", "database": "unavailable"}
 
 
-def test_startup_fails_when_database_unavailable(tmp_path, monkeypatch):
-    broken_engine = create_engine(f"sqlite:///{(tmp_path / 'missing' / 'app.db').as_posix()}")
+def test_startup_fails_when_database_unavailable(monkeypatch):
+    broken_engine = create_engine(
+        "postgresql://invalid:invalid@127.0.0.1:1/invalid",
+        connect_args={"connect_timeout": 1},
+    )
     monkeypatch.setattr(db_module, "engine", broken_engine)
     try:
         with pytest.raises(ConnectionError, match="数据库连接失败"):
