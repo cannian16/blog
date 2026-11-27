@@ -18,7 +18,7 @@ cd site && pnpm install && pnpm dev
 cd admin && pnpm install && pnpm dev
 ```
 
-`admin` 需要设置 `PUBLIC_API_BASE_URL`。`site` 的浏览器请求固定使用同源 `/api/`；本地开发前将 `site/.env.example` 复制为 `site/.env`，设置 `DEV_API_TARGET`，部署入口也需要将该路径代理到 FastAPI API。后端不再提供默认 SQLite 数据库，详细 PostgreSQL 和迁移配置见 `backend/README.md`。文章直接在 `site/src/content/posts/` 编辑，站点构建会自动读取，不再需要从独立仓库同步。
+`admin` 和 `site` 的浏览器请求都固定使用同源 `/api/`。本地开发前分别将 `admin/.env.example`、`site/.env.example` 复制为对应的 `.env`，设置 `API_PROXY_TARGET`、`DEV_API_TARGET` 指向后端地址，Vite 会把 `/api` 代理到该地址并去掉前缀；部署入口也需要将该路径代理到 FastAPI API。后端不再提供默认 SQLite 数据库，详细 PostgreSQL 和迁移配置见 `backend/README.md`。文章直接在 `site/src/content/posts/` 编辑，站点构建会自动读取，不再需要从独立仓库同步。
 
 ## 容器构建
 
@@ -27,12 +27,12 @@ cd admin && pnpm install && pnpm dev
 ```sh
 docker build -t blog-backend ./backend
 docker build -t blog-site ./site
-docker build --build-arg PUBLIC_API_BASE_URL=https://blog.cannian.space/api -t blog-admin ./admin
+docker build -t blog-admin ./admin
 docker run --rm -p 8080:80 blog-site
 docker run --rm -p 3000:3000 blog-admin
 ```
 
-`site` 生成静态文件，由 nginx 提供服务；音乐、友链和关于页数据由浏览器请求 `/api/` 获取，构建时无需连接后端。`admin` 使用 SvelteKit 的 Node adapter，API 地址仍由 `PUBLIC_API_BASE_URL` 构建参数指定。后端镜像需要在运行时配置 `DATABASE_URL`（PostgreSQL）、`SECRET_KEY` 和管理员凭据；镜像不会自动执行 Alembic 迁移。
+`site` 生成静态文件，由 nginx 提供服务；音乐、友链和关于页数据由浏览器请求 `/api/` 获取，构建时无需连接后端。`admin` 使用 SvelteKit 的 Node adapter，浏览器同样请求同源 `/api/`，构建时不需要配置 API 地址。后端镜像需要在运行时配置 `DATABASE_URL`（PostgreSQL）、`SECRET_KEY` 和管理员凭据；镜像不会自动执行 Alembic 迁移。
 
 ## CI
 

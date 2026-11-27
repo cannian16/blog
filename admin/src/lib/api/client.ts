@@ -1,9 +1,10 @@
 import { browser } from "$app/environment";
-import { PUBLIC_API_BASE_URL } from "$env/static/public";
+
+const API_BASE_URL = "/api";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	// 自动补全基础路径
-	const url = `${PUBLIC_API_BASE_URL}${path}`;
+	const url = `${API_BASE_URL}${path}`;
 
 	// 默认加上 JSON 头
 	const headers = new Headers(options.headers);

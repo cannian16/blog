@@ -8,8 +8,6 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-ARG PUBLIC_API_BASE_URL=https://blog.cannian.space/api
-ENV PUBLIC_API_BASE_URL=${PUBLIC_API_BASE_URL}
 RUN pnpm build
 
 # --- 第二阶段：运行 (精简安装) ---
