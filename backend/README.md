@@ -54,6 +54,8 @@ make dev
 uv run uvicorn --app-dir src app.main:app --host 0.0.0.0 --port 5000
 ```
 
+健康检查接口为 `GET /healthz`：数据库可用时返回 `200` 和 `{"status": "ok", "database": "ok"}`，数据库不可用时返回 `503`。应用启动时（lifespan）也会执行一次 `SELECT 1` 连通性检查，数据库不可用则启动失败。
+
 ## 调试模式
 
 将 `DEBUG` 设为 `true`（大小写不敏感，也接受 `1`、`yes`、`on`）后：

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -34,6 +34,14 @@ def configure_database(database_url: str) -> Engine:
     engine = _make_engine(database_url)
     SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     return engine
+
+
+def check_db_health() -> None:
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise ConnectionError(f"数据库连接失败: {exc}") from exc
 
 
 def get_db() -> Generator[Session, None, None]:

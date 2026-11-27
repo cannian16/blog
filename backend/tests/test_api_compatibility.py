@@ -14,6 +14,7 @@ from app.schemas.resources import LinkSchema, PostSchema, SkillSchema, SongSchem
 
 EXPECTED_ROUTES = {
     ("/", "GET"),
+    ("/healthz", "GET"),
     ("/auth/login", "POST"), ("/auth/me", "GET"),
     ("/messages/get", "GET"), ("/messages/add", "POST"),
     ("/links/get", "GET"), ("/links/add", "POST"), ("/links/delete", "POST"), ("/links/update", "POST"), ("/links/addlist", "POST"),
@@ -230,7 +231,7 @@ def test_docs_head_and_exact_options_compatibility(client, auth_headers):
         assert head_response.content == b"", path
 
     business_paths = {path for path, _ in EXPECTED_ROUTES}
-    assert len(business_paths) == 30
+    assert len(business_paths) == 31
     for path in business_paths:
         response = client.options(path)
         assert response.status_code == 200, path

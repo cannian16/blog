@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
@@ -9,7 +10,7 @@ from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException
 
 from app.core.config import settings
-from app.core.db import Base, configure_database
+from app.core.db import Base, check_db_health, configure_database
 from app.core.logging_config import setup_logging
 from app.core.security import AuthenticationError, authentication_error_handler
 from app.models import Link, Message, Post, Skill, Song, Tool  # noqa: F401
@@ -53,6 +54,12 @@ def _add_method_compatibility(application: FastAPI) -> set[str]:
     return set(methods_by_path)
 
 
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    check_db_health()
+    yield
+
+
 def create_app(
     database_url: str | None = None,
     *,
@@ -70,6 +77,7 @@ def create_app(
         docs_url="/docs" if debug_enabled else None,
         redoc_url="/redoc" if debug_enabled else None,
         openapi_url="/openapi.json" if debug_enabled else None,
+        lifespan=lifespan,
     )
     application.add_exception_handler(AuthenticationError, authentication_error_handler)
 
